@@ -1,0 +1,47 @@
+<!doctype html>
+
+<title>Neural Networks</title>
+<meta charset="utf-8" />
+<style href="css/reset.css"></style>
+<style>
+    #view { 
+        border : 1px solid #000;
+        cursor: crosshair;
+        -webkit-user-select: none;
+    }
+    #input { 
+        width: 600px; 
+        height: 480px;
+    }
+</style>
+
+<canvas id="view"></canvas>
+<textarea id="input">
+# output nodes ~ input nodes
+h1 ~ 1000x - 333
+h2 ~ -1000x - 333
+h3 ~ 1000y - 333
+h4 ~ -1000y - 333
+c1 ~ -1000h[1..4]
+c2 ~ 1000h[1..4] - 2000
+out ~ -10c[1..2] + 1
+
+#!x:horz
+#!y:vert
+
+## output nodes ~ input nodes
+#y ~ -2x
+#z ~ -3.5y
+#w ~ -25z
+#y ~ -7.6w
+#
+#!x:horz
+</textarea>
+
+<script src="js/neury.js"></script>
+<script src="js/def.js"></script>
+<script src="js/vector.js"></script>
+<script src="js/canvas.js"></script>
+<script src="js/hudstack.js"></script>
+<script src="js/main.js"></script>
+<script src="js/bindings.js"></script>
