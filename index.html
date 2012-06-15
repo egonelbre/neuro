@@ -1,0 +1,641 @@
+<!doctype html>
+<html>
+<head>
+	<title>Neural Networks</title>
+	<meta charset="utf-8" />
+    <style>
+        #c { border : 1px solid #000;}
+        #input { width: 600px; height: 200px;}
+    </style>
+    <script src="js/neury.js"></script>
+</head>
+<body>
+<button onclick="toggleComputation()">Pause/Run</button>
+<br />
+<canvas id="c"></canvas>
+<br />
+<textarea id="input">
+# output nodes ~ input nodes
+h1 ~ 1000x - 333
+h2 ~ -1000x - 333
+h3 ~ 1000y - 333
+h4 ~ -1000y - 333
+c1 ~ -1000h[1..4]
+c2 ~ 1000h[1..4] - 2000
+out ~ -10c[1..2] + 1
+
+!x:horz
+!y:vert
+
+## output nodes ~ input nodes
+#y ~ -2x
+#z ~ -3.5y
+#w ~ -25z
+#y ~ -7.6w
+#
+#!x:horz
+</textarea>
+<br />
+<button onclick="processInput()">Process</button>
+
+	<script>
+		var body = document.body;
+		var canvas = document.getElementsByTagName('canvas')[0];
+		var ctx = canvas.getContext('2d');
+		document.body.clientWidth; // fix bug in webkit: http://qfox.nl/weblog/218
+	</script>
+	<script>
+
+tau = Math.PI * 2;
+abs = Math.abs;
+
+main = {
+    size : {x:600, y:600},
+    zoom : 4,
+    offset : {x:0,y:0},
+    changed : true,
+    drag : false,
+    dragDelta : {x:0,y:0},
+    activeLinks : []
+};
+
+main.to = function(item, result){
+    result.pos.x = (item.pos.x + this.offset.x) * this.zoom,
+    result.pos.y = (item.pos.y + this.offset.y) * this.zoom,
+    result.size = item.size * this.zoom;
+}
+
+main.from = function(item, result){
+    result.pos.x = item.pos.x / this.zoom - this.offset.x,
+    result.pos.y = item.pos.y / this.zoom - this.offset.y;
+}
+
+CPU = {
+    hotness : 1.0,
+    paused : false,
+    cur : {},
+    next : {changed:false},
+};
+
+canvas.width = main.size.x;
+canvas.height = main.size.y;
+
+mouse = {pos:{x:0,y:0},size:5, view:{pos:{x:0,y:0}, size:5}, down:false};
+mouse.render = function(){
+    ctx.beginPath();
+    ctx.fillStyle = this.down ? "#fdb" : "#adb";
+    ctx.arc(this.view.pos.x, this.view.pos.y, 3, 0, tau, 0);
+    ctx.fill();
+}
+mouse.setPos = function(e){
+    this.view.pos.x = e.pageX - canvas.offsetLeft;
+    this.view.pos.y = e.pageY - canvas.offsetTop;
+    main.from(this.view, this);
+}
+
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       || 
+          window.webkitRequestAnimationFrame || 
+          window.mozRequestAnimationFrame    || 
+          window.oRequestAnimationFrame      || 
+          window.msRequestAnimationFrame     || 
+          function( callback ){ window.setTimeout(callback, 1000 / 60);};
+})();
+
+indexer = (function(){var idx=0; return function(){idx+=1;return idx+"";} })();
+function diff(from, to, result){result.x = from.x - to.x; result.y = from.y - to.y;}
+function avg(from, to, result){ result.x = (from.x + to.x)/2; result.y = (from.y + to.y)/2;}
+function isInside(a,b,size){return (Math.abs(a.x - b.x) < size) && (Math.abs(a.y - b.y) < size)}
+function sigmoid(a){return 1/(1+Math.exp(-a));}
+
+function NeuronValue(size){
+    this.size = {x:size.x, y:size.y};
+    this.count = size.x * size.y;
+    this.value = new Float32Array(this.count);
+    this.changed = true;
+    this.imageData = ctx.createImageData(size.x, size.y);
+}
+
+NeuronValue.prototype.clear = function(value){
+    value = value || 0;
+    for(var i = 0; i < this.value.length; i+=1){
+        this.value[i] = value;
+    }
+}
+
+NeuronValue.prototype.assign = function(other){
+    for(var i = 0; i < this.value.length; i+=1){
+        this.value[i] = other.value[i];
+    }
+}
+
+NeuronValue.prototype.add = function(other, mul){
+    for(var i = 0; i < this.value.length; i+=1){
+        this.value[i] += other.value[i] * mul;
+    }
+}
+
+NeuronValue.prototype.addBias = function(bias){
+    for(var i = 0; i < this.value.length; i+=1){
+        this.value[i] += bias;
+    }
+}
+
+NeuronValue.prototype.same = function(other){
+    var diff = 0;
+    for(var i = 0; i < this.value.length; i+=1){
+        diff += Math.abs(this.value[i] - other.value[i]);
+    }
+    return diff < 0.01;
+}
+
+NeuronValue.prototype.calculate = function(){
+    for(var i = 0; i < this.value.length; i+=1){
+        this.value[i] = sigmoid(this.value[i]);
+    }
+    this.changed = true;
+}
+
+NeuronValue.prototype.renderToImage = function(){
+    if(!this.changed)
+        return;
+    var k = 0,
+        data = this.imageData.data;
+    for(var i = 0; i < data.length; i+=4){
+        var v = this.value[k];
+        k += 1;
+        v = (v+1) / 2;
+        v = v > 1 ? 255 : v < 0 ? 0 : (v*255)|0;
+        data[i]   = v;
+        data[i+1] = v;
+        data[i+2] = v;
+        data[i+3] = 255;
+    }
+}
+
+NeuronValue.prototype.render = function(x, y){
+    this.renderToImage();
+    ctx.putImageData(this.imageData, x, y);
+}
+
+function Neuron(name, pos){
+    this.idx = indexer();
+    this.name = name;
+    this.pos = pos || {x:0, y:0};
+    this.size = 5;
+    this.inputs = [];
+    this.outputs = [];
+    this.changed = true;
+    this.view = { pos : {x:0, y:0}, size:5, hover:false, drag:false, dragDelta: {x:0, y:0} };
+    this.bias = 0;
+    this.value = new NeuronValue({x:50, y:50});
+    this.next_value = new NeuronValue({x:50, y:50});
+}
+
+Neuron.prototype.recalcView = function(force){
+    if(!this.changed && !force) return;
+    main.to(this, this.view);
+    this.changed = false;
+}
+
+Neuron.prototype.recalcLinks = function(force){
+    for(var i = 0; i < this.inputs.length; i += 1){
+        var link = this.inputs[i];
+        avg(link.from.view.pos, this.view.pos, link.center);
+    }
+}
+
+Neuron.prototype.compute = function(){
+    if(this.inputs.length <= 0){
+        return;
+    }
+
+    var result = this.next_value;
+    result.clear();
+
+    for(var i = 0; i < this.inputs.length; i += 1){
+        var link = this.inputs[i];
+        result.add( link.from.value, link.weight );
+    }
+    
+    result.addBias(this.bias);
+    result.calculate();
+
+    this.next_value = result;
+    if(this.next_value.same(this.value)) return;
+    
+    this.changed = true;
+    this.triggerOut();
+}
+
+Neuron.prototype.tick = function(){
+    this.value.assign(this.next_value);
+}
+
+Neuron.prototype.trigger = function(){
+    CPU.next[this.idx] = this;
+    CPU.next.changed = true;
+}
+
+Neuron.prototype.triggerOut = function(){
+    for(var i = 0; i < this.outputs.length; i += 1)
+        this.outputs[i].to.trigger();
+}
+
+Neuron.prototype.set = function(value){
+    this.value = value;
+    this.next_value.assign(value);
+    this.triggerOut();
+}
+
+Neuron.prototype.render = function(){
+    var view = this.view;
+    ctx.fillStyle = view.hover ? "#ecd" : "#dab";
+    ctx.beginPath();
+    ctx.arc(view.pos.x, view.pos.y, view.size, 0, tau, 0);
+    ctx.fill();
+
+    ctx.fillStyle = "#000";
+    ctx.font = 7 * main.zoom + "px sans-serif";
+    tm = ctx.measureText(this.name)
+    tm.height = 4 * main.zoom;
+    ctx.fillText(this.name, 
+        view.pos.x - tm.width/2, 
+        view.pos.y + tm.height/2);
+    this.value.render(this.view.pos.x + this.view.size, this.view.pos.y);
+}
+
+Neuron.prototype.renderConnections = function(){
+    if(this.inputs.length == 0){
+        ctx.beginPath();
+        ctx.moveTo(0, this.view.pos.y);
+        ctx.lineTo(this.view.pos.x, this.view.pos.y);
+        ctx.strokeStyle = "#999";
+        ctx.stroke();
+    } else {
+        var center = {x:0,y:0};
+        for(var i = 0; i < this.inputs.length; i += 1){
+            var link = this.inputs[i];
+            // draw line
+            ctx.strokeStyle = link.down ? "#f00" : "#999";
+            ctx.beginPath();
+            ctx.moveTo(link.from.view.pos.x, link.from.view.pos.y);
+            ctx.lineTo(this.view.pos.x, this.view.pos.y);
+            ctx.stroke();
+            // draw text
+            ctx.font = 3.5 * main.zoom + "px sans-serif";
+            ctx.beginPath();
+
+            ctx.fillStyle = "rgba(100,200,200,0.3)";
+            ctx.arc(link.center.x, link.center.y, 10, 0, tau, 0);
+            ctx.fill();
+
+            ctx.fillStyle = "#000";
+            ctx.fillText(link.weight.toFixed(2), link.center.x, link.center.y);
+        }
+    }
+
+    if(this.outputs.length == 0){
+        ctx.strokeStyle = "#999";
+        ctx.beginPath();
+        ctx.moveTo(this.view.pos.x, this.view.pos.y);
+        ctx.lineTo(main.size.x, this.view.pos.y);
+        ctx.stroke();
+    }
+}
+
+Neuron.prototype.mouseDown = function(e){
+    if(this.view.hover){
+        this.view.drag = true;
+        diff(this.pos, mouse.pos, this.view.dragDelta);
+        return true;
+    }
+    return false;
+}
+
+Neuron.prototype.mouseLinkDown = function(e){
+    for(var i = 0; i < this.inputs.length; i += 1){
+        var link = this.inputs[i];
+        if( isInside(mouse.view.pos, link.center, 10) ){
+            link.down = true;
+            main.activeLinks.push(link);
+            return true;
+        }
+    }
+    return false;
+}
+
+Neuron.prototype.mouseUp = function(e){
+    this.view.drag = false;
+    return false;
+}
+
+Neuron.prototype.mouseMove = function(e){
+    this.view.hover = isInside(this.view.pos, mouse.view.pos, this.view.size);
+    if(this.view.drag){
+        this.pos.x = mouse.pos.x + this.view.dragDelta.x;
+        this.pos.y = mouse.pos.y + this.view.dragDelta.y;
+        this.changed = true;
+    }
+}
+
+//====================================
+
+makeLink = function(X,Y, weight){
+    var link = {from:X, to:Y, weight: weight, center:{x:0, y:0}, down: false};
+    X.outputs.push(link);
+    Y.inputs.push(link);
+}
+
+X = new Neuron("x", {x:20, y:30});
+Y = new Neuron("y", {x:20, y:60});
+Z = new Neuron("z", {x:70, y:40});
+W = new Neuron("w", {x:120, y:40});
+
+//makeLink(Y,X,1);
+makeLink(X,Z,1);
+makeLink(Y,Z,1);
+makeLink(Z,W,1);
+//makeLink(W,X,1);
+
+neurons = [ X, Y, Z, W ];
+
+for(var x = 0; x < 2500; x += 1){
+    X.value.value[x] = (x%50)/50;
+    Y.value.value[x] = ((x/50)|0)/50;
+}
+
+X.set(X.value);
+Y.set(Y.value);
+
+function extractNodes(items){
+    var nodes = [],
+        regItem = /^(-?)([\d\.]*)([a-zA-Z][a-zA-Z0-9]*)(\[\d+\.\.\d+\])?$/,
+        regRange = /^\[(\d+)\.\.(\d+)\]$/;
+    // item = -3.4x[1..4]
+    for(var i = 0; i < items.length; i += 1){
+        var item = items[i];
+        tokens = regItem.exec(item);
+        if(!tokens)
+            continue;
+        var sign = tokens[1] == "-" ? -1.0 : 1.0,
+            weight = tokens[2] == "" ? 1.0 : parseFloat(tokens[2]),
+            id = tokens[3],
+            range = tokens[4];
+        if(!range){
+            nodes.push( { id: id, weight: weight * sign } );
+        } else {
+            var rangeParts = regRange.exec(range),
+                from = parseInt(rangeParts[1]),
+                to = parseInt(rangeParts[2]);
+            for(var k = from; k <= to; k += 1){
+                nodes.push({id: id+k, weight: weight*sign});
+            }
+        }
+    }
+    return nodes;
+}
+
+function parseLink(expression){
+    var tokens = expression.replace(/\-/g,"+-").replace(/ /g, "").split("~"),
+        out = tokens[0].split("+"),
+        inp = tokens[1].split("+"),
+        output = extractNodes(out),
+        input = extractNodes(inp),
+        bias = 0.0,
+        regBias = /^-?[\d\.]+$/;
+
+    var potential_bias = inp[inp.length-1];
+    if(regBias.test(potential_bias))
+        bias = parseFloat(potential_bias);
+    return {output: output, input: input, bias:bias};
+}
+
+function processLines(lines){
+    var neurons = [],
+        neuronMap = {},
+        px = 0,
+        py = 0,
+        dx = 50,
+        dy = 50;
+
+    var makeReg = function(regs){
+        return RegExp("$" + regs.join("\\s*") + "(#.*)?^");
+    };
+
+    var getNeuron = function(id){
+        if( !neuronMap[id] ){
+            neuronMap[id] = new Neuron(id, {x:px+Math.random()*10, y:py+Math.random()*10});
+            py += dy;
+            neurons.push(neuronMap[id]);
+        }
+        return neuronMap[id];
+    }
+
+    var regComment = /^\s*([^#]*)(#.*)?$/,
+        regLink = /^([\-\+]?\s*[a-zA-Z][a-zA-Z0-9]*(\[\d+\.\.\d+\])?\s*)+\s*~\s*(\+?\s*\-?\s*([\d\.]*)[a-zA-Z][a-zA-Z0-9]*(\[\d+\.\.\d+\])?\s*)+(\s*[\+\-]\s*[\d\.]+)?$/,
+        regAttribute = /^\s*!([a-zA-Z][a-zA-Z0-9]*):(.*)$/;
+
+    for(var i = 0; i < lines.length; i += 1){
+        var line = lines[i];
+
+        var tokens = regComment.exec(line);
+        if(!tokens)
+            continue;
+
+        var expression = tokens[1].trim();
+        if(expression == "") 
+            continue;
+
+        px += dx;
+        py = 0;
+
+        if(regLink.test(expression)){
+            var items = parseLink(expression);
+            for(var j = 0; j < items.input.length; j += 1){
+                var itemFrom = items.input[j];
+                var neuronFrom = getNeuron(itemFrom.id);
+                for(var k = 0; k < items.output.length; k += 1){
+                    var itemTo = items.output[k];
+                    var neuronTo = getNeuron(itemTo.id);
+                    neuronTo.bias = items.bias;
+                    makeLink(neuronFrom, neuronTo, itemFrom.weight/itemTo.weight);
+                }
+            }
+            continue;
+        }
+
+        if(regAttribute.test(expression)){
+            var items = regAttribute.exec(expression),
+                id = items[1],
+                attrib = items[2],
+                neuron = getNeuron(id);
+
+            if( attrib == "horz" ){
+                var size = neuron.value.size;
+                for(var x = 0; x < size.x; x+=1)
+                    for(var y = 0; y < size.y; y+=1)
+                        neuron.value.value[y*size.x + x] = x*2.0/size.x - 1.0;
+                neuron.set(neuron.value);
+            } else if (attrib == "vert"){
+                var size = neuron.value.size;
+                for(var x = 0; x < size.x; x+=1)
+                    for(var y = 0; y < size.y; y+=1)
+                        neuron.value.value[y*size.x + x] = y*2.0/size.y - 1.0;
+                neuron.set(neuron.value);
+            } else {
+                console.log("Unkown attribute '" + attrib + "' for '" + id + "'!");
+            }
+            continue;
+        }
+
+        console.log("Error parsing line: "+ i + "\n" + expression);
+    }
+    return neurons;
+}
+
+function processInput(){
+    lines = document.getElementById("input").value.split("\n");
+    try {
+        neurons = processLines(lines);
+        forceUpdate();
+    } catch(e) {
+        console.log(e);
+    }
+
+}
+
+//====================================
+
+function tick(){
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].tick();
+}
+
+function forceUpdate(){
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].trigger();
+    CPU.cur = {};
+    for(var idx in CPU.next){
+        if(!CPU.next.hasOwnProperty(idx)) continue;
+        CPU.cur[idx] = CPU.next[idx];
+    }
+    delete CPU.cur["changed"];
+}
+
+function compute(){
+    var processed = false;
+    CPU.hotness *= 0.8;
+    if(CPU.paused) return;
+
+    for(var idx in CPU.cur){
+        if(!CPU.cur.hasOwnProperty(idx)) continue;
+        CPU.cur[idx].compute();
+        delete CPU.cur[idx];
+        processed = true;
+    }
+
+    if(processed || CPU.next.changed){
+        tick();
+        CPU.cur = CPU.next;
+        delete CPU.cur["changed"];
+        CPU.next = {changed:false};
+    }
+
+    if(processed){
+        CPU.hotness = 1.0;
+    };
+}
+
+function updateDrag(){
+    for(var i = 0; i < main.activeLinks.length; i += 1){
+        var link = main.activeLinks[i];
+        link.weight += (main.dragDelta.y*main.zoom - mouse.view.pos.y)/1000;
+        link.to.trigger();
+    }
+}
+
+function toggleComputation(){
+    CPU.paused = !CPU.paused;
+}
+
+function render(){
+    compute();
+    updateDrag();
+    ctx.clearRect(0,0,main.size.x, main.size.y);
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(230, 150, 150, " + CPU.hotness.toFixed(1) + ")";
+    ctx.arc(30, 30, 10, 0, tau, 0);
+    ctx.fill();
+
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].recalcView(main.changed);
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].recalcLinks(main.changed);
+    for(var i = 0 ; i < neurons.length; i+=1)
+        neurons[i].renderConnections();
+    for(var i = 0 ; i < neurons.length; i+=1)
+        neurons[i].render();
+    mouse.render();
+
+    main.changed = false;
+	window.requestAnimFrame(render);
+}
+render();
+
+canvas.onmousemove=function(e){
+    mouse.setPos(e)
+    if( main.drag ){
+        main.offset.x = mouse.view.pos.x / main.zoom - main.dragDelta.x;
+        main.offset.y = mouse.view.pos.y / main.zoom - main.dragDelta.y;
+        main.changed = true;
+    }
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].mouseMove(e);
+    e.preventDefault();
+};
+
+canvas.onmousedown=function(e){
+    e.preventDefault();
+    mouse.down = true;
+    mouse.setPos(e)
+    var hit = false
+    for(var i = 0; !hit && (i < neurons.length); i += 1)
+        hit = neurons[i].mouseDown(e) || hit;
+    for(var i = 0; !hit && (i < neurons.length); i += 1)
+        hit = neurons[i].mouseLinkDown(e) || hit;    
+    main.dragDelta.x = mouse.view.pos.x / main.zoom - main.offset.x;
+    main.dragDelta.y = mouse.view.pos.y / main.zoom - main.offset.y;
+    
+    if (hit) return;
+    main.drag = true;
+}
+
+canvas.onmouseup=function(e){
+    e.preventDefault();
+    main.drag = false;
+    mouse.down = false;
+    mouse.setPos(e)
+    for(var i = 0; i < neurons.length; i += 1)
+        neurons[i].mouseUp(e);
+    for(var i = 0; i < main.activeLinks.length; i += 1){
+        main.activeLinks[i].down = false;
+    }
+    main.activeLinks = [];
+}
+
+canvas.onmousewheel=function(e){
+    e.preventDefault();
+    main.offset.x -= mouse.view.pos.x / main.zoom;
+    main.offset.y -= mouse.view.pos.y / main.zoom;
+    main.zoom *= e.wheelDelta > 0 ? 1.2 : 1/1.2;
+    main.offset.x += mouse.view.pos.x / main.zoom;
+    main.offset.y += mouse.view.pos.y / main.zoom;
+    main.changed = true;
+}
+
+// end of submission //
+	</script>
+</body>
+</html>
