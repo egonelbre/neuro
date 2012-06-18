@@ -1,21 +1,35 @@
 //TODO: type asserts
 
 function CPU(){
-	this.hotness = 1.0;
 	this.paused = false;
 	this.next = {};
+	this.hotness = 1.0;
 }
 
 CPU.methods({
 	schedule : function(node){
 		this.next[node.name] = node;
 	},
+	toggle : function(){
+		this.paused = !this.paused;
+	},
 	process : function(){
+		if(this.paused)
+			return;
+
+		this.hotness *= 0.8;
+		
 		var cur = this.next,
 			keys = Object.keys(cur);
+		
+		if(keys.length <= 0)
+			return;
+		
 		this.next = {};
 		keys.map(function(n){ cur[n].compute(); });
 		keys.map(function(n){ cur[n].update(); });
+
+		this.hotness = 1.0;
 	}
 });
 
@@ -23,32 +37,21 @@ function Net(){
 	this.nodes = {};
 	this.ports = [];
 	this.wires = [];
-	this.CPU = new CPU();
+	this.cpu = new CPU();
 }
 
 Net.methods({
-	hasNode : function(name){
+	has : function(name){
 		return this.nodes[name] != undefined;
 	},
-	newNode : function(name){
-		var node = new Node(this, name);
-		this.nodes[name] = node;
-		this.ports.push(node.input);
-		this.ports.push(node.output);
-		return node;
-	},
-	newWire : function(from, to){
-		var wire = new Wire(this, from.output, to.input);
-		this.wires.push(wire);
-		return wire;
-	},
-	signalNodes : function(){
+	update : function(){
 		var net = this,
 			keys = Object.keys(this.nodes);
 		keys.map(function(name){
 			net.nodes[name].signal(this);
 		});
 	},
+	// for debugging
 	print : function(){
 		var net = this,
 			status = "===\n",
@@ -57,8 +60,22 @@ Net.methods({
 			var node = net.nodes[name];
 			status += name + ":" + node.value + ":" + node.bias + "\n";
 		});	
-
-		console.log(status);
+		return status;
+	},
+	// element constructors
+	Node : function(name){
+		var node = new Node(this, name);
+		this.nodes[name] = node;
+		this.ports.push(node.input);
+		this.ports.push(node.output);
+		node.signal(this);
+		return node;
+	},
+	Wire : function(from, to){
+		var wire = new Wire(this, from.output, to.input);
+		this.wires.push(wire);
+		wire.signal(this);
+		return wire;
 	}
 });
 
@@ -80,19 +97,20 @@ Node.methods({
 	},
 	// schedule an update for this node
 	signal : function(sender){
-		this.net.CPU.schedule(this);
+		this.net.cpu.schedule(this);
 	},
 	// compute the next value for the output port
 	compute : function(){
 		var inputs = this.input.collect();
+		// aggregate inputs
 		var value = this.bias;
 		for(var i = 0; i < inputs.length; i += 1){
-			value += inputs[i];
+			var inp = inputs[i];
+			value += inp.data * inp.modifier;
 		}
-
+		// neuron function
 		value = value > 0.0 ? 1.0 : value < 0.0 ? -1.0 : 0.0;
-		// aggregate inputs
-		// apply function
+		// store the new value
 		this.value = value;
 	},
 	// set the output port to the target value
@@ -160,24 +178,6 @@ Wire.methods({
 	// get the value from source port
 	get: function(){
 		var data = this.from.get();
-		return this.func(data, this.modifier);
-	},
-	// apply the modifier to the data
-	func : function(data, modifier){
-		//TODO: multiple dispatch based on data/modifier type
-		return data * modifier;
-	}	
+		return {data: data, modifier: this.modifier};
+	}
 });
-
-
-
-net = new Net();
-x = net.newNode("x")
-y = net.newNode("y")
-x$y = net.newWire(x, y);
-y$x = net.newWire(y, x);
-
-x.set(1.0);
-y.set(-1.0);
-
-net.signalNodes();
