@@ -110,7 +110,45 @@ NetUI.methods({
 });
 
 
+function NetAdjuster(){
+	this.adjusting = false;
+	this.selection = false;
+}
+
+NetAdjuster.methods({
+	getNet : function(){
+		return main.net;
+	},
+	render : function(ctx){
+	},
+	findItem : function(e){
+		return null;
+	},
+	adjustItem : function(e){
+	},
+	touch : function(action, e){
+		if(!this.adjusting && (action != "start"))
+			return;
+		if(e.button != 0) return;
+
+		if(action == "start")
+			this.selection = this.findItem(e);
+
+		if(this.selection == null)
+			return false;
+
+		this.adjustItem(this.selection, e);
+        
+		if((action == "cancel") || (action == "end"))
+			this.selection = null;
+
+		this.adjusting = this.selection != null;
+		return true;
+	}
+})
+
 function NetMover(){
+	//todo : inherit from NetAdjuster
 	this.moving = false;
 	this.selection = null;
 	this.last = {x:0, y:0};
@@ -164,6 +202,7 @@ NetMover.methods({
 });
 
 function WireAdjuster(){
+	//todo : inherit from NetAdjuster
 	this.moving = false;
 	this.selection = null;
 	this.last = {x:0, y:0};
@@ -202,7 +241,7 @@ WireAdjuster.methods({
         if(action == "start")
             V.set(this.last, e.pos);
         
-        this.selection.modifier += (e.pos.y - this.last.y)/2;
+        this.selection.modifier -= (e.pos.y - this.last.y)/2;
 
         V.set(this.last, e.pos);
 
