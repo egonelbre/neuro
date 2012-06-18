@@ -74,3 +74,18 @@ V.nearToLine = function(from, to, pos, err){
 
     return dx*dx + dy*dy < err2;
 };
+
+
+V.transform = function(p, offset, zoom, r){
+    r = r || {x:0,y:0};
+    r.x = (p.x + offset.x) * zoom;
+    r.y = (p.y + offset.y) * zoom;
+    return r;
+}
+
+V.inverseTransform = function(p, offset, zoom, r){
+    r = r || {x:0,y:0};
+    r.x = p.x / zoom - offset.x;
+    r.y = p.y / zoom - offset.y;
+    return r;
+}

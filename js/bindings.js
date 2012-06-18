@@ -9,8 +9,8 @@ var mouseBinding = function(action){
         if(!mouseDown && (action == "move")) return;
 
         var touch = e;
-        touch.cx = touch.pageX - canvas.offsetLeft;
-        touch.cy = touch.pageY - canvas.offsetTop;
+        touch.pos = { x: touch.pageX - canvas.offsetLeft,
+                      y: touch.pageY - canvas.offsetTop}
         touch.identifier = "mouse";
         main.touch(action, touch);
 
@@ -21,6 +21,7 @@ var mouseBinding = function(action){
 canvas.onmousemove=mouseBinding("move");
 canvas.onmousedown=mouseBinding("start");
 canvas.onmouseup=mouseBinding("end");
+canvas.onmousewheel=mouseBinding("wheel");
 
 var keyBinding = function(action){
     return function(e){
@@ -39,8 +40,8 @@ var touchBinding = function(action){
 
         for(var i = 0; i < e.changedTouches.length; i += 1){
             var touch = e.changedTouches[i];
-            touch.cx = touch.pageX - canvas.offsetLeft;
-            touch.cy = touch.pageY - canvas.offsetTop;
+            touch.pos = { x: touch.pageX - canvas.offsetLeft,
+                          y: touch.pageY - canvas.offsetTop}
             main.touch(action, touch);
         }
     }

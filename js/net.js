@@ -64,7 +64,7 @@ GUI.methods({
 
 		ctx.fillStyle = "#000";
 		ctx.font = "11px Georgia, sans-serif";
-		
+
 	    ctx.fillTextC(node.name, 
 	        view.pos.x, 
 	        view.pos.y);
@@ -81,6 +81,7 @@ GUI.methods({
         // draw text
         ctx.font = "11px Georgia, sans-serif";
         
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.fillStyle = "#eee";
         ctx.strokeStyle = "#111";

@@ -27,6 +27,9 @@ main = {
 	render : function(ctx){
 		ctx.fillStyle = "#fff";
 		ctx.fillRect(0, 0, this.size.x, this.size.y);
+
+		this.huds.size.x = this.size.x;
+		this.huds.size.y = this.size.y;
 		this.huds.render(ctx);
 	},
 	setSize : function(size){
