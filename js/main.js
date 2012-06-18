@@ -45,6 +45,7 @@ main.net = net;
 
 main.huds.add(new NetUI());
 main.huds.add(new NetMover());
+main.huds.add(new WireAdjuster());
 
 var X = net.Node("X.3"); 
 var Y = net.Node("Y.5"); 

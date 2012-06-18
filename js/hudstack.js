@@ -72,7 +72,8 @@ function HUDStackScroll(){
 
 HUDStackScroll.methods({
     render : function(ctx){
-
+        // render zoom
+        // render scroll
     },
     touch : function(action, e){
         var stack = this.owner;
