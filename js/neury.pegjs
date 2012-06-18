@@ -1,9 +1,9 @@
 start
-  = lines:(line "\n")* last:line
+  = lines:(line "\n")* last:line "\n"?
 {
   var r = [];
   for(var i = 0; i < lines.length; i += 1)
-    if(lines[i] != 0)
+    if(lines[i][0] != 0)
       r.push(lines[i][0]);
   if(last && (last != 0))
     r.push(last);
@@ -15,7 +15,7 @@ line
   / comment? {return 0;}
 
 comment
-  = space "#" .*
+  = space "#" [^\n]*
 
 assignment
   = output:nodes space "~" space input:nodes off:(space "+"? space float)?
