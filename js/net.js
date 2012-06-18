@@ -64,8 +64,7 @@ GUI.methods({
 
 		ctx.fillStyle = "#000";
 		ctx.font = "11px Georgia, sans-serif";
-		//var tm = ctx.measureText(node.name);
-	    //tm.height = 9;
+		
 	    ctx.fillTextC(node.name, 
 	        view.pos.x, 
 	        view.pos.y);
@@ -75,10 +74,9 @@ GUI.methods({
 		var view = wire.view;
 
         // draw line
-        ctx.fillStyle = "#384";
-        ctx.strokeStyle = "#384";
-
-        ctx.arrow([view.from, view.to], 3, 1, 5);
+        ctx.fillStyle = "#ddd";
+        ctx.strokeStyle = "#444";
+        ctx.arrow([view.from, view.to], 3, 0.3, 5);
 
         // draw text
         ctx.font = "11px Georgia, sans-serif";
