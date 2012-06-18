@@ -2,6 +2,9 @@ function HUDStack(){
     this.name = "";
     this.owner = null;
     this.touches = {};
+    this.huds = [];
+    this.offset = {x:0, y:0};
+    this.zoom = 1.0;
 }
 
 HUDStack.methods({
@@ -19,21 +22,29 @@ HUDStack.methods({
                 ctx.fill();
             }
         }
+
+        for(var i = 0; i < this.huds.length; i += 1){
+            this.huds[i].render(ctx);
+        }
     },
     touch : function(action, e){
         if(!this.touches[e.identifier])
             this.touches[e.identifier] = {x:e.cx, y:e.cy, color:"#f00"};
         this.touches[e.identifier].x = e.cx;
         this.touches[e.identifier].y = e.cy;
-        
+
         if(action == "start"){
             this.touches[e.identifier].color = '#'+Math.floor(Math.random()*16777215).toString(16);
         }
 
         if((action == "end") || (action == "cancel"))
             delete this.touches[e.identifier];
+
+        for(var i = 0; i < this.huds.length; i += 1){
+            this.huds[i].touch(action, e);
+        }
     },
     add : function(hud){
-        
+        this.huds.push(hud);
     }
 });

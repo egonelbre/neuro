@@ -35,6 +35,14 @@ main = {
 	}
 };
 
+net = new Net();
+main.huds.add(net);
+
+var X = net.Node("X.3"); 
+var Y = net.Node("Y.5"); 
+var Z = net.Node("Z.6"); 
+net.Wire(X, Y);
+
 canvas.width = main.size.x;
 canvas.height = main.size.y;
 

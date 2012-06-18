@@ -4,6 +4,11 @@ function V(x,y){
 	return {x:x||0, y:y||0};
 }
 
+V.set = function(a, b){
+    a.x = b.x;
+    a.y = b.y;
+}
+
 V.distSq = function(from, to){
 	return Math.pow(from.x - to.x, 2) + Math.pow(from.y - to.y, 2);
 };
@@ -28,6 +33,13 @@ V.sub = function(a, b, r){
 	r.x = a.x - b.x;
 	r.y = a.y - b.y;
 	return r;
+};
+
+V.avg = function(a, b, r){
+    r = r || {x:0, y:0};
+    r.x = (a.x + b.x) / 2.0;
+    r.y = (a.y + b.y) / 2.0;
+    return r;
 };
 
 V.nearToLine = function(from, to, pos, err){

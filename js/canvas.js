@@ -8,12 +8,13 @@ var angle_between = function(from, to){
 	return Math.atan2(dy, dx);
 }
 
-CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
+CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth, head){
     if(points.length < 2){
     	throw "Requires at least 2 points!";
     }
     
     lineWidth = lineWidth || 1;
+    head = head || width;
 
     var fill = ctx.fillStyle,
     	stroke = ctx.strokeStyle;
@@ -33,8 +34,8 @@ CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
     last = points[points.length-1];
 
     angle = angle_between(points[points.length-2], last);
-    dx = Math.cos(angle)*width*2;
-    dy = Math.sin(angle)*width*2;
+    dx = Math.cos(angle)*head*2;
+    dy = Math.sin(angle)*head*2;
 
     prex = last.x + dx,
     prey = last.y + dy;
@@ -55,8 +56,8 @@ CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
     this.beginPath();
     
     angle += tau/4;
-    dx = Math.cos(angle)*width;
-    dy = Math.sin(angle)*width;
+    dx = Math.cos(angle)*head;
+    dy = Math.sin(angle)*head;
     
     this.moveTo(prex+dx, prey+dy);
     this.lineTo(last.x, last.y);
@@ -65,6 +66,15 @@ CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
     this.closePath();
 	this.fill();
     this.stroke();
+};
+
+CanvasRenderingContext2D.prototype.fillTextC = function(text, x, y){
+    var tm = this.measureText(text);
+    tm.height = this.measureText("X").width;
+
+    ctx.fillText(text,
+        x - tm.width / 2,
+        y + tm.height / 2);
 };
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/

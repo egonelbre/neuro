@@ -33,11 +33,114 @@ CPU.methods({
 	}
 });
 
+function GUI(){}
+
+GUI.methods({
+	renderNode : function(ctx, net, node){
+		this.positionNode(net, node);
+		var view = node.view;
+
+		ctx.strokeStyle = "#111";
+		ctx.lineWidth = 1;
+		
+		ctx.fillStyle = view.hover ? "#ecd" : "#ddd";
+		ctx.beginPath();
+		ctx.arc(view.pos.x, view.pos.y, view.radius, 0, tau, 0);
+		ctx.fill();
+		ctx.stroke();
+
+		ctx.fillStyle = "#eee";
+		ctx.beginPath();
+		ctx.arc(view.pos.x - view.radius, 
+			    view.pos.y, view.radius/3, 0, tau, 0);
+		ctx.fill();
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.arc(view.pos.x + view.radius, 
+			    view.pos.y, view.radius/3, 0, tau, 0);
+		ctx.fill();
+		ctx.stroke();
+
+		ctx.fillStyle = "#000";
+		ctx.font = "11px Georgia, sans-serif";
+		//var tm = ctx.measureText(node.name);
+	    //tm.height = 9;
+	    ctx.fillTextC(node.name, 
+	        view.pos.x, 
+	        view.pos.y);
+	},
+	renderWire : function(ctx, net, wire){
+		this.positionWire(net, wire);
+		var view = wire.view;
+
+        // draw line
+        ctx.fillStyle = "#384";
+        ctx.strokeStyle = "#384";
+
+        ctx.arrow([view.from, view.to], 3, 1, 5);
+
+        // draw text
+        ctx.font = "11px Georgia, sans-serif";
+        
+        ctx.beginPath();
+        ctx.fillStyle = "#eee";
+        ctx.strokeStyle = "#111";
+        ctx.arc(view.center.x, view.center.y, view.radius, 0, tau, 0);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#000";
+
+        var text = wire.modifier >= 1000 ? 
+        	wire.modifier.toFixed(0): wire.modifier.toFixed(1);
+
+        ctx.fillTextC(text, view.center.x, view.center.y);
+	},
+	render : function(ctx, net){
+		var g = this,
+			keys = Object.keys(net.nodes);
+		keys.map(function(name){ g.renderNode(ctx, net, net.nodes[name]);});
+		net.wires.map(function(wire){ g.renderWire(ctx, net, wire); });
+	},
+	positionNode : function(net, node){
+		if(node.view == null){
+			node.view = {
+				pos : { x : Math.random()*500, 
+				        y : Math.random()*500 },
+				hover : false,
+				radius : 20
+			};
+		}
+	},
+	positionWire : function(net, wire){
+		if(wire.view == null){
+			wire.view = {
+				from : {x : 0, y : 0},
+				to : {x : 0, y : 0},
+				center : { x : 0, y : 0 },
+				hover : false,
+				radius : 20
+			};
+		}
+		var view = wire.view;
+		
+		V.set(view.from, wire.from.owner.view.pos);
+		view.from.x += wire.from.owner.view.radius;
+
+		V.set(view.to, wire.to.owner.view.pos);
+		view.to.x -= wire.to.owner.view.radius;
+
+		V.avg(view.from, view.to, view.center);
+	}
+});
+
 function Net(){
 	this.nodes = {};
 	this.ports = [];
 	this.wires = [];
 	this.cpu = new CPU();
+	this.gui = new GUI();
 }
 
 Net.methods({
@@ -62,31 +165,59 @@ Net.methods({
 		});	
 		return status;
 	},
-	// element constructors
-	Node : function(name){
-		var node = new Node(this, name);
-		this.nodes[name] = node;
+
+	render : function(ctx){
+		this.gui.render(ctx, this);
+	},
+	touch : function(action, e){
+
+	},
+	// api
+	addNode : function(node){
+		node.net = this;
+		this.nodes[node.name] = node;
 		this.ports.push(node.input);
 		this.ports.push(node.output);
+	},
+	addWire : function(wire){
+		this.wires.push(wire);
+		wire.signal(this);
+	},
+
+	// element constructors
+	Node : function(name){
+		if(this.nodes[name] != undefined)
+			return this.nodes[name];
+		var node = new Node(name);
+		this.addNode(node);
 		node.signal(this);
 		return node;
 	},
 	Wire : function(from, to){
-		var wire = new Wire(this, from.output, to.input);
-		this.wires.push(wire);
-		wire.signal(this);
+		if(typeof from == "string")
+			from = this.Node(from);
+		if(typeof to == "string")
+			to = this.Node(to);
+		for(var i = 0; i < this.wires.length; i += 1){
+			var wire = this.wires[i];
+			if((wire.from.owner == from) && (wire.to.owner == to))
+				return wire;
+		}
+		var wire = new Wire(from.output, to.input);
+		this.addWire(wire);
 		return wire;
 	}
 });
 
 // Node drives computation
-function Node(net, name){
-	this.net = net;
+function Node(name){
+	this.net = null;
 	this.name = name;
-	this.input = new Port(this.net, this);
-	this.output = new Port(this.net, this);
+	this.input = new Port(this);
+	this.output = new Port(this);
 	this.bias = 0;
 	this.value = 0;
+	this.view = null;
 }
 
 Node.methods({
@@ -97,7 +228,8 @@ Node.methods({
 	},
 	// schedule an update for this node
 	signal : function(sender){
-		this.net.cpu.schedule(this);
+		if(this.net != null)
+			this.net.cpu.schedule(this);
 	},
 	// compute the next value for the output port
 	compute : function(){
@@ -120,8 +252,7 @@ Node.methods({
 });
 
 // Port is basically a multiplexer for wires
-function Port(net, owner){
-	this.net = net;
+function Port(owner){
 	this.owner = owner;
 	this.wires = [];
 	this.value = null;
@@ -160,11 +291,11 @@ Port.methods({
 });
 
 // Wire is basically a signal transimtter
-function Wire(net, from, to){
-	this.net = net;
+function Wire(from, to){
 	this.from = from;
 	this.to = to;
 	this.modifier = 1.0;
+	this.view = null;
 
 	this.from.wires.push(this);
 	this.to.wires.push(this);
