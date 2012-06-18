@@ -35,11 +35,16 @@ main = {
 	setSize : function(size){
 		this.size.x = size.x;
 		this.size.y = size.y;
-	}
+	},
+
+	net : null
 };
 
 net = new Net();
-main.huds.add(net);
+main.net = net;
+
+main.huds.add(new NetUI());
+main.huds.add(new NetMover());
 
 var X = net.Node("X.3"); 
 var Y = net.Node("Y.5"); 

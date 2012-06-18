@@ -20,14 +20,14 @@ Grid.methods({
         ctx.rect(-5,-5,10,10);
         ctx.stroke();
 
-        ctx.lineWidth = 0.3*px;
+        ctx.lineWidth = 0.2*px;
         ctx.strokeStyle = "#333";
         
         ctx.beginPath();
 
-        var left = -stack.offset.x,
-            right = sz.x-stack.offset.x,
-            top = -stack.offset.y,
+        var left   = -stack.offset.x,
+            right  = sz.x-stack.offset.x,
+            top    = -stack.offset.y,
             bottom = -stack.offset.y+sz.y;
 
         ctx.moveTo(left, 0);
@@ -38,8 +38,8 @@ Grid.methods({
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.lineWidth = 0.2*px;
-        ctx.strokeStyle = "#888";
+        ctx.lineWidth = 0.1*px;
+        ctx.strokeStyle = "#bbb";
 
         var x = (((left - this.density)/this.density)|0) * this.density,
             y = (((top - this.density)/this.density)|0) * this.density;

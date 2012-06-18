@@ -33,113 +33,11 @@ CPU.methods({
 	}
 });
 
-function GUI(){}
-
-GUI.methods({
-	renderNode : function(ctx, net, node){
-		this.positionNode(net, node);
-		var view = node.view;
-
-		ctx.strokeStyle = "#111";
-		ctx.lineWidth = 1;
-		
-		ctx.fillStyle = view.hover ? "#ecd" : "#ddd";
-		ctx.beginPath();
-		ctx.arc(view.pos.x, view.pos.y, view.radius, 0, tau, 0);
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.fillStyle = "#eee";
-		ctx.beginPath();
-		ctx.arc(view.pos.x - view.radius, 
-			    view.pos.y, view.radius/3, 0, tau, 0);
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.beginPath();
-		ctx.arc(view.pos.x + view.radius, 
-			    view.pos.y, view.radius/3, 0, tau, 0);
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.fillStyle = "#000";
-		ctx.font = "11px Georgia, sans-serif";
-
-	    ctx.fillTextC(node.name, 
-	        view.pos.x, 
-	        view.pos.y);
-	},
-	renderWire : function(ctx, net, wire){
-		this.positionWire(net, wire);
-		var view = wire.view;
-
-        // draw line
-        ctx.fillStyle = "#ddd";
-        ctx.strokeStyle = "#444";
-        ctx.arrow([view.from, view.to], 3, 0.3, 5);
-
-        // draw text
-        ctx.font = "11px Georgia, sans-serif";
-        
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.fillStyle = "#eee";
-        ctx.strokeStyle = "#111";
-        ctx.arc(view.center.x, view.center.y, view.radius, 0, tau, 0);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = "#000";
-
-        var text = wire.modifier >= 1000 ? 
-        	wire.modifier.toFixed(0): wire.modifier.toFixed(1);
-
-        ctx.fillTextC(text, view.center.x, view.center.y);
-	},
-	render : function(ctx, net){
-		var g = this,
-			keys = Object.keys(net.nodes);
-		keys.map(function(name){ g.renderNode(ctx, net, net.nodes[name]);});
-		net.wires.map(function(wire){ g.renderWire(ctx, net, wire); });
-	},
-	positionNode : function(net, node){
-		if(node.view == null){
-			node.view = {
-				pos : { x : Math.random()*500, 
-				        y : Math.random()*500 },
-				hover : false,
-				radius : 20
-			};
-		}
-	},
-	positionWire : function(net, wire){
-		if(wire.view == null){
-			wire.view = {
-				from : {x : 0, y : 0},
-				to : {x : 0, y : 0},
-				center : { x : 0, y : 0 },
-				hover : false,
-				radius : 20
-			};
-		}
-		var view = wire.view;
-		
-		V.set(view.from, wire.from.owner.view.pos);
-		view.from.x += wire.from.owner.view.radius;
-
-		V.set(view.to, wire.to.owner.view.pos);
-		view.to.x -= wire.to.owner.view.radius;
-
-		V.avg(view.from, view.to, view.center);
-	}
-});
-
 function Net(){
 	this.nodes = {};
 	this.ports = [];
 	this.wires = [];
 	this.cpu = new CPU();
-	this.gui = new GUI();
 }
 
 Net.methods({
@@ -165,12 +63,6 @@ Net.methods({
 		return status;
 	},
 
-	render : function(ctx){
-		this.gui.render(ctx, this);
-	},
-	touch : function(action, e){
-
-	},
 	// api
 	addNode : function(node){
 		node.net = this;

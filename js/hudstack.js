@@ -3,8 +3,8 @@ function HUDStack(){
     this.owner = null;
     this.touches = {};
     this.huds = [];
-    this.offset = {x:100, y:100};
-    this.zoom = 0.7;
+    this.offset = {x:0, y:0};
+    this.zoom = 1.0;
     this.size = {x:0,y:0};
 
     this.add(new Grid());
@@ -98,6 +98,5 @@ HUDStackScroll.methods({
             
             return true;
         }
-        console.log(e);
     }
 })
