@@ -173,7 +173,7 @@ Port.methods({
 			this.value = value.clone()
 		else if(this.value.same(value))
 			return;
-		
+
 		this.value.assign(value);
 		for(var i = 0; i < this.wires.length; i += 1){
 			var w = this.wires[i];
@@ -219,5 +219,9 @@ Wire.methods({
 	get: function(){
 		var data = this.from.get();
 		return {data: data, modifier: this.modifier};
+	},
+	setModifier: function(value){
+		this.modifier = value;
+		this.signal(this);
 	}
 });

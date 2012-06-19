@@ -235,7 +235,8 @@ WireAdjuster.methods({
         if(action == "start")
             V.set(this.last, e.pos);
         
-        this.selection.modifier -= (e.pos.y - this.last.y)/2;
+        var value = this.selection.modifier - (e.pos.y - this.last.y)/2;
+        this.selection.setModifier(value);
 
         V.set(this.last, e.pos);
 

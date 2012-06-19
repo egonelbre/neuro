@@ -62,18 +62,24 @@ Matrix.methods({
 		var i = 0,
 			data = this.imageData.data;
 		for(var k = 0; k < this.count; k += 1){
-	        var v = this.value[k];
-	        k += 1;
-	        v = (v+1) / 2;
-	        v = v > 1 ? 255 : v < 0 ? 0 : (v*255)|0;
-	        data[i]   = v;
-	        data[i+1] = v;
-	        data[i+2] = v;
+	        var v = this.value[k] * 255,
+	        	err = Math.abs(v) > 255 ? Math.abs(v) - 255 : 0;
+	        err = err > 5 ? 255 : err;
+	        if(v < 0){
+	        	data[i]   = 255     - err;
+		        data[i+1] = 255 + v - err;
+		        data[i+2] = 255 + v - err;
+	        } else {
+	        	data[i]   = 255 - v - err;
+		        data[i+1] = 255     - err;
+		        data[i+2] = 255 - v - err;
+	        }
 	        data[i+3] = 255;
+	        
 	        i += 4;
 		}
 	},
-	
+
 	render : function(ctx, x, y){
 		if(this.changed)
 			this.invalidate(ctx);
