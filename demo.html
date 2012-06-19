@@ -7,24 +7,19 @@ subtitle: Demo
 <canvas id="view"></canvas>
 <textarea id="input">
 # output nodes ~ input nodes
-h1 ~ 1000x - 333
-h2 ~ -1000x - 333
-h3 ~ 1000y - 333
-h4 ~ -1000y - 333
-c1 ~ -1000h[1..4]
-c2 ~ 1000h[1..4] - 2000
+h.1 ~ 1000x - 333
+h.2 ~ -1000x - 333
+h.3 ~ 1000y - 333
+h.4 ~ -1000y - 333
+c.1 ~ -1000h[1..4]
+c.2 ~ 1000h[1..4] - 2000
 out ~ -10c[1..2] + 1
 
-#!x:horz
-#!y:vert
-
-## output nodes ~ input nodes
-#y ~ -2x
-#z ~ -3.5y
-#w ~ -25z
-#y ~ -7.6w
-#
-#!x:horz
+# define layers
+= x y
+= h[1..4]
+= c[1..2]
+= out
 </textarea>
 
 <button id="load">Load</button>
