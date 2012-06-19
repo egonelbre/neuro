@@ -24,6 +24,14 @@ section {
 }
 
 #input { 
-    width: 400px; 
+    width: 500px; 
     height: 200px;
+}
+
+#log {
+  width: 800px;
+}
+
+button {
+  height: 40px;
 }
