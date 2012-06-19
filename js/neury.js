@@ -41,6 +41,7 @@ neury = (function(){
         "line": parse_line,
         "comment": parse_comment,
         "assignment": parse_assignment,
+        "layouting": parse_layouting,
         "nodes": parse_nodes,
         "node": parse_node,
         "range_node": parse_range_node,
@@ -275,20 +276,44 @@ neury = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, assign) {return assign;})(pos0.offset, pos0.line, pos0.column, result0[0]);
+          result0 = (function(offset, line, column, assign) {return {typ:"wire", "def":assign};})(pos0.offset, pos0.line, pos0.column, result0[0]);
         }
         if (result0 === null) {
           pos = clone(pos0);
         }
         if (result0 === null) {
           pos0 = clone(pos);
-          result0 = parse_comment();
-          result0 = result0 !== null ? result0 : "";
+          pos1 = clone(pos);
+          result0 = parse_layouting();
           if (result0 !== null) {
-            result0 = (function(offset, line, column) {return 0;})(pos0.offset, pos0.line, pos0.column);
+            result1 = parse_comment();
+            result1 = result1 !== null ? result1 : "";
+            if (result1 !== null) {
+              result0 = [result0, result1];
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+          if (result0 !== null) {
+            result0 = (function(offset, line, column, layout) {return {typ:"layout", "def":layout};})(pos0.offset, pos0.line, pos0.column, result0[0]);
           }
           if (result0 === null) {
             pos = clone(pos0);
+          }
+          if (result0 === null) {
+            pos0 = clone(pos);
+            result0 = parse_comment();
+            result0 = result0 !== null ? result0 : "";
+            if (result0 !== null) {
+              result0 = (function(offset, line, column) {return 0;})(pos0.offset, pos0.line, pos0.column);
+            }
+            if (result0 === null) {
+              pos = clone(pos0);
+            }
           }
         }
         
@@ -465,6 +490,66 @@ neury = (function(){
            var off = off ? off[3] : 0.0;
            return {output: output, input: input, offset:off};
         })(pos0.offset, pos0.line, pos0.column, result0[0], result0[4], result0[5]);
+        }
+        if (result0 === null) {
+          pos = clone(pos0);
+        }
+        
+        cache[cacheKey] = {
+          nextPos: clone(pos),
+          result:  result0
+        };
+        return result0;
+      }
+      
+      function parse_layouting() {
+        var cacheKey = "layouting@" + pos.offset;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = clone(cachedResult.nextPos);
+          return cachedResult.result;
+        }
+        
+        var result0, result1, result2, result3;
+        var pos0, pos1;
+        
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        result0 = parse_space();
+        if (result0 !== null) {
+          if (input.charCodeAt(pos.offset) === 61) {
+            result1 = "=";
+            advance(pos, 1);
+          } else {
+            result1 = null;
+            if (reportFailures === 0) {
+              matchFailed("\"=\"");
+            }
+          }
+          if (result1 !== null) {
+            result2 = parse_space();
+            if (result2 !== null) {
+              result3 = parse_nodes();
+              if (result3 !== null) {
+                result0 = [result0, result1, result2, result3];
+              } else {
+                result0 = null;
+                pos = clone(pos1);
+              }
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+        } else {
+          result0 = null;
+          pos = clone(pos1);
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, line, column, nodes) { return {nodes:nodes}; })(pos0.offset, pos0.line, pos0.column, result0[3]);
         }
         if (result0 === null) {
           pos = clone(pos0);

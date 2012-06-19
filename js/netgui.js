@@ -76,14 +76,6 @@ NetUI.methods({
 	touch : function(action, e){},
 	positionNode : function(net, node){
 		var net = this.net;
-		if(node.view == null){
-			node.view = {
-				pos : { x : Math.random()*500, 
-				        y : Math.random()*500 },
-				hover : false,
-				radius : 20
-			};
-		}
 	},
 	positionWire : function(net, wire){
 		var net = this.net;

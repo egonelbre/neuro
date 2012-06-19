@@ -30,13 +30,19 @@
 <canvas id="view"></canvas>
 <textarea id="input">
 # output nodes ~ input nodes
-h1 ~ 1000x - 333
-h2 ~ -1000x - 333
-h3 ~ 1000y - 333
-h4 ~ -1000y - 333
-c1 ~ -1000h[1..4]
-c2 ~ 1000h[1..4] - 2000
+h.1 ~ 1000x - 333
+h.2 ~ -1000x - 333
+h.3 ~ 1000y - 333
+h.4 ~ -1000y - 333
+c.1 ~ -1000h[1..4]
+c.2 ~ 1000h[1..4] - 2000
 out ~ -10c[1..2] + 1
+
+# define layers
+= x y
+= h[1..4]
+= c[1..2]
+= out
 
 #!x:horz
 #!y:vert
@@ -51,7 +57,6 @@ out ~ -10c[1..2] + 1
 </textarea>
 <br />
 <div id="log">
-SyntaxError: Expected "*", "+", "[", "~", [ \t], [a-zA-Z0-9.], [a-zA-Z] or float but "\n" found.
 </div>
 <br />
 <button id="load">Load</button>

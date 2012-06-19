@@ -11,7 +11,8 @@ start
 }
 
 line
-  = assign:assignment comment? {return assign;}
+  = assign:assignment comment? {return {typ:"wire", "def":assign};}
+  / layout:layouting comment? {return {typ:"layout", "def":layout};}
   / comment? {return 0;}
 
 comment
@@ -23,6 +24,9 @@ assignment
    var off = off ? off[3] : 0.0;
    return {output: output, input: input, offset:off};
 }
+
+layouting
+  = space "=" space nodes:nodes { return {nodes:nodes}; }
 
 nodes
   = first:node rest:( space "+"? space node )*

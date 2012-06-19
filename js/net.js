@@ -108,7 +108,11 @@ function Node(name){
 	this.output = new Port(this);
 	this.bias = 0;
 	this.value = 0;
-	this.view = null;
+	this.view = {
+		pos : { x : Math.random()*500, 
+		        y : Math.random()*500 },
+		radius : 20
+	};
 }
 
 Node.methods({
