@@ -34,9 +34,11 @@ NetUI.methods({
 		ctx.fillStyle = "#000";
 		ctx.font = "11px Georgia, sans-serif";
 
-	    ctx.fillTextC(node.name, 
+	    ctx.fillTextC(node.name,
 	        view.pos.x, 
 	        view.pos.y);
+
+	   	node.value.render(ctx, view.pos.x, view.pos.y + view.radius);
 	},
 	renderWire : function(ctx, net, wire){
 		this.positionWire(net, wire);

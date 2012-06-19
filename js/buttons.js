@@ -58,7 +58,7 @@ load.onclick = function(){
 };
 
 step.onclick = function(){
-	console.log();
+	main.net.cpu.process();
 };
 
 run.onclick = function(){

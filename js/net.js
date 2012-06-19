@@ -80,6 +80,7 @@ Net.methods({
 		if(this.nodes[name] != undefined)
 			return this.nodes[name];
 		var node = new Node(name);
+		node.set(this.newValue());
 		this.addNode(node);
 		node.signal(this);
 		return node;
@@ -97,6 +98,23 @@ Net.methods({
 		var wire = new Wire(from.output, to.input);
 		this.addWire(wire);
 		return wire;
+	},
+
+	// for defining net behaviour
+	newValue : function(){
+		return new Matrix({x:50, y:50});
+	},
+	aggregate : function(value, bias, inputs){
+		// aggregate inputs
+		value.clear(bias);
+		for(var i = 0; i < inputs.length; i += 1){
+			var inp = inputs[i];
+			value.add(inp.data, inp.modifier);
+		}
+
+		value.applyFunc(function(x){
+			return x > 0.0 ? 1.0 : x < 0.0 ? -1.0 : 0.0;
+		});
 	}
 });
 
@@ -128,17 +146,10 @@ Node.methods({
 	},
 	// compute the next value for the output port
 	compute : function(){
+		if(!this.net)
+			return;
 		var inputs = this.input.collect();
-		// aggregate inputs
-		var value = this.bias;
-		for(var i = 0; i < inputs.length; i += 1){
-			var inp = inputs[i];
-			value += inp.data * inp.modifier;
-		}
-		// neuron function
-		value = value > 0.0 ? 1.0 : value < 0.0 ? -1.0 : 0.0;
-		// store the new value
-		this.value = value;
+		this.net.aggregate(this.value, this.bias, inputs);
 	},
 	// set the output port to the target value
 	update : function(){
@@ -158,9 +169,12 @@ Port.methods({
 	// signal connected ports
 	set : function(value){
 		//TODO: check value type
-		if(this.value == value)
+		if(this.value == null)
+			this.value = value.clone()
+		else if(this.value.same(value))
 			return;
-		this.value = value;
+		
+		this.value.assign(value);
 		for(var i = 0; i < this.wires.length; i += 1){
 			var w = this.wires[i];
 			w.signal(this);

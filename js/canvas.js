@@ -77,6 +77,26 @@ CanvasRenderingContext2D.prototype.fillTextC = function(text, x, y){
         y + tm.height / 2);
 };
 
+
+CanvasRenderingContext2D.prototype.drawImageData = function(imageData, x, y){
+    if(!this.tempCanvas){
+        this.tempCanvas = document.createElement('canvas');
+        this.tempCtx = this.tempCanvas.getContext('2d');
+    }
+    var canvas = this.tempCanvas,
+        ctx = this.tempCtx;
+
+    if(canvas.width < imageData.width)
+        canvas.width = imageData.width;
+    if(canvas.height < imageData.height)
+        canvas.height = imageData.height;
+
+    ctx.putImageData(imageData, 0, 0);
+    this.drawImage(canvas, 
+        0, 0, imageData.width, imageData.height,
+        x, y, imageData.width, imageData.height);
+};
+
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
  
