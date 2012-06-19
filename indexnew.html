@@ -15,6 +15,16 @@
         width: 600px; 
         height: 480px;
     }
+
+	button {
+		width : 70px;
+		height: 30px;
+	}
+
+	#log {
+		height: 10px;
+		font: "10px Courier New";
+	}
 </style>
 
 <canvas id="view"></canvas>
@@ -39,6 +49,15 @@ out ~ -10c[1..2] + 1
 #
 #!x:horz
 </textarea>
+<br />
+<div id="log">
+SyntaxError: Expected "*", "+", "[", "~", [ \t], [a-zA-Z0-9.], [a-zA-Z] or float but "\n" found.
+</div>
+<br />
+<button id="load">Load</button>
+<button id="step">Step</button>
+<button id="run">Run</button>
+<button id="stop">Stop</button>
 
 <script src="js/def.js"></script>
 <script src="js/vector.js"></script>
@@ -53,3 +72,4 @@ out ~ -10c[1..2] + 1
 
 <script src="js/main.js"></script>
 <script src="js/bindings.js"></script>
+<script src="js/buttons.js"></script>
