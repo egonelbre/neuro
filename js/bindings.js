@@ -9,8 +9,8 @@ var mouseBinding = function(action){
         if(!mouseDown && (action == "move")) return;
 
         var touch = e;
-        touch.pos = { x: touch.pageX - canvas.offsetLeft,
-                      y: touch.pageY - canvas.offsetTop}
+        touch.pos = { x: touch.offsetX,
+                      y: touch.offsetY}
         touch.identifier = "mouse";
         main.touch(action, touch);
 
@@ -40,8 +40,8 @@ var touchBinding = function(action){
 
         for(var i = 0; i < e.changedTouches.length; i += 1){
             var touch = e.changedTouches[i];
-            touch.pos = { x: touch.pageX - canvas.offsetLeft,
-                          y: touch.pageY - canvas.offsetTop}
+            touch.pos = { x: touch.offsetX,
+                          y: touch.offsetY}
             main.touch(action, touch);
         }
     }
