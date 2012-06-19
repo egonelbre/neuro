@@ -3,7 +3,7 @@ function HUDStack(){
     this.owner = null;
     this.touches = {};
     this.huds = [];
-    this.offset = {x:0, y:0};
+    this.offset = {x:50, y:200};
     this.zoom = 1.0;
     this.size = {x:0,y:0};
 
@@ -37,7 +37,6 @@ HUDStack.methods({
     },
     touch : function(action, e){
         // e.scroll is the transformed position on the canvas
-        // e.cx.     
         e.scroll = V.inverseTransform(e.pos, this.offset, this.zoom);
 
         for(var i = 0; i < this.huds.length; i += 1){

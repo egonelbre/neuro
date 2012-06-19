@@ -19,14 +19,13 @@ var loadWires = function(state, net, def){
 }
 
 var loadLayouts = function(state, net, def){
-	console.log(def);
 	var x = state.layer * 200,
 		y = -100*def.nodes.length/2;
 	for(var i = 0; i < def.nodes.length; i += 1){
 		var node = net.Node(def.nodes[i].name);
 		node.view.pos.x = x;
 		node.view.pos.y = y;
-		y += 100 + (Math.random()*10|0)*10;
+		y += 100 + Math.random()*100;
 	}
 	state.layer += 1;
 }
