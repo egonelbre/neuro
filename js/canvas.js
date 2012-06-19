@@ -6,7 +6,7 @@ var angle_between = function(from, to){
 	var dx = from.x - to.x,
 		dy = from.y - to.y;
 	return Math.atan2(dy, dx);
-}
+};
 
 CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth, head){
     if(points.length < 2){

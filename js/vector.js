@@ -7,7 +7,7 @@ function V(x,y){
 V.set = function(a, b){
     a.x = b.x;
     a.y = b.y;
-}
+};
 
 V.distSq = function(from, to){
 	return Math.pow(from.x - to.x, 2) + Math.pow(from.y - to.y, 2);
@@ -15,7 +15,7 @@ V.distSq = function(from, to){
 
 V.dist = function(from, to){
 	return Math.sqrt(V.distSq(from, to));
-}
+};
 
 V.dot = function(a, b){
 	return a.x * b.x + a.y * b.y;
@@ -75,17 +75,18 @@ V.nearToLine = function(from, to, pos, err){
     return dx*dx + dy*dy < err2;
 };
 
-
+// for moving from coordinates to screen
 V.transform = function(p, offset, zoom, r){
     r = r || {x:0,y:0};
     r.x = (p.x + offset.x) * zoom;
     r.y = (p.y + offset.y) * zoom;
     return r;
-}
+};
 
+// for moving from screen to coordinates
 V.inverseTransform = function(p, offset, zoom, r){
     r = r || {x:0,y:0};
     r.x = p.x / zoom - offset.x;
     r.y = p.y / zoom - offset.y;
     return r;
-}
+};
