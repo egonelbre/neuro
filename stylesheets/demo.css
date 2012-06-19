@@ -1,0 +1,29 @@
+header {
+	padding : 0;
+}
+
+header a {
+	color : #fff;
+}
+
+.wrapper {
+  width: 840px;
+}
+
+section {
+  width : 800px;
+  margin-top: 90px;
+}
+
+#view { 
+    border : 1px solid #000;
+    cursor: crosshair;
+    -webkit-user-select: none;
+    width: 800px;
+    height: 480px;
+}
+
+#input { 
+    width: 400px; 
+    height: 200px;
+}

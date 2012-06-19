@@ -1,0 +1,11 @@
+auto: true
+server: true
+
+permalink: /blog/:year/:month/:day/:title
+
+destination: _site
+pygments: true
+
+lsi: false
+
+safe: true
