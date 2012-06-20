@@ -3,7 +3,7 @@
 function CPU(){
 	this.paused = false;
 	this.next = {};
-	this.hotness = 1.0;
+	this.time = 0;
 }
 
 CPU.methods({
@@ -13,23 +13,20 @@ CPU.methods({
 	toggle : function(){
 		this.paused = !this.paused;
 	},
-	process : function(){
+	process : function(){		
 		if(this.paused)
 			return;
-
-		this.hotness *= 0.8;
 		
+		this.time += 1;
 		var cur = this.next,
 			keys = Object.keys(cur);
 		
 		if(keys.length <= 0)
 			return;
-		
+
 		this.next = {};
 		keys.map(function(n){ cur[n].compute(); });
 		keys.map(function(n){ cur[n].update(); });
-
-		this.hotness = 1.0;
 	}
 });
 
@@ -131,6 +128,7 @@ function Node(name){
 		        y : Math.random()*500 },
 		radius : 20
 	};
+	this.time = 0;
 }
 
 Node.methods({
@@ -141,13 +139,11 @@ Node.methods({
 	},
 	// schedule an update for this node
 	signal : function(sender){
-		if(this.net != null)
-			this.net.cpu.schedule(this);
+		this.net.cpu.schedule(this);
+		this.time = this.net.cpu.time;
 	},
 	// compute the next value for the output port
 	compute : function(){
-		if(!this.net)
-			return;
 		var inputs = this.input.collect();
 		this.net.aggregate(this.value, this.bias, inputs);
 	},
@@ -205,6 +201,7 @@ function Wire(from, to){
 	this.to = to;
 	this.weight = 1.0;
 	this.view = null;
+	this.time = 0;
 
 	this.from.wires.push(this);
 	this.to.wires.push(this);
@@ -214,6 +211,7 @@ Wire.methods({
 	// signal the target port
 	signal: function(sender){
 		this.to.signal(sender);
+		this.time = this.from.owner.net.cpu.time;
 	},
 	// get the value from source port
 	get: function(){

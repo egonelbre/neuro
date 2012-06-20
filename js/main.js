@@ -45,7 +45,7 @@ main.net = net;
 
 setInterval(function(){
 	main.net.cpu.process();
-}, 50);
+}, 40);
 
 main.huds.add(new NetUI());
 main.huds.add(new NetMover());
@@ -74,5 +74,5 @@ function requestRender(){
     }, 1000/fps);
 }
 
-setInterval(requestRender, 1000);
+setInterval(requestRender, 33);
 requestRender();

@@ -1,3 +1,11 @@
+var timeToColor = function(net, time){
+	var diff = net.cpu.time - time,
+		norm = Math.exp(-diff/10),
+		saturation = norm * 70,
+		lightness = 95 - 20*norm;
+	return "hsla(0,"+ (saturation|0) +"%, " + (lightness|0) + "%, 1.0)";
+}
+
 function NetUI(){
 }
 
@@ -12,7 +20,7 @@ NetUI.methods({
 		ctx.strokeStyle = "#111";
 		ctx.lineWidth = 1;
 		
-		ctx.fillStyle = "#ddd";
+		ctx.fillStyle = timeToColor(net, node.time);
 		ctx.beginPath();
 		ctx.arc(view.pos.x, view.pos.y, view.radius, 0, tau, 0);
 		ctx.fill();
@@ -45,7 +53,8 @@ NetUI.methods({
 		var view = wire.view;
 
         // draw line
-        ctx.fillStyle = "#ddd";
+        //ctx.fillStyle = "#ddd";
+        ctx.fillStyle = timeToColor(net, wire.time);
         ctx.strokeStyle = "#444";
         ctx.arrow([view.from, view.to], 3, 0.3, 5);
 
