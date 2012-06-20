@@ -77,24 +77,48 @@ CanvasRenderingContext2D.prototype.fillTextC = function(text, x, y){
         y + tm.height / 2);
 };
 
-
-CanvasRenderingContext2D.prototype.drawImageData = function(imageData, x, y){
+// possible calling conventions
+// (imagedata, dx, dy)
+// (imagedata, dx, dy, dw, dh)
+// (imagedata, sx, sy, sw, sh, dx, dy, dw, dh)
+CanvasRenderingContext2D.prototype.drawImageData = function(
+    imageData, sx, sy, sw, sh, dx, dy, dw, dh){
     if(!this.tempCanvas){
         this.tempCanvas = document.createElement('canvas');
         this.tempCtx = this.tempCanvas.getContext('2d');
     }
+
+    if(sw == undefined){
+        sw = imageData.width;
+        sh = imageData.height;
+    }
+
+    if(dx == undefined){
+        dx = sx;
+        dy = sy;
+        sx = 0;
+        sy = 0;
+    }
+
+    if(dw == undefined){
+        dw = sw;
+        dh = sh;
+        sw = imageData.width;
+        sh = imageData.height;
+    }
+
     var canvas = this.tempCanvas,
         ctx = this.tempCtx;
 
-    if(canvas.width < imageData.width)
-        canvas.width = imageData.width;
-    if(canvas.height < imageData.height)
-        canvas.height = imageData.height;
+    if(canvas.width < sw)
+        canvas.width = sw;
+    if(canvas.height < sh)
+        canvas.height = sh;
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(imageData, -sx, -sy);
     this.drawImage(canvas, 
-        0, 0, imageData.width, imageData.height,
-        x, y, imageData.width, imageData.height);
+        0, 0, sw, sh,
+        dx, dy, dw, dh);
 };
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/

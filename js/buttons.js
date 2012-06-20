@@ -2,7 +2,6 @@ var loadWires = function(state, net, def){
 	for(var k = 0; k < def.output.length; k += 1){
 		var nodeDef = def.output[k],
 			node = net.Node(nodeDef.name);
-		console.log(node.name, ":", def.offset);
 		node.bias = def.offset;
 	}
 

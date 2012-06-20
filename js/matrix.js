@@ -80,7 +80,7 @@ Matrix.methods({
 		}
 	},
 
-	render : function(ctx, x, y){
+	render : function(ctx, x, y, w, h){
 		if(this.changed)
 			this.invalidate(ctx);
 
