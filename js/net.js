@@ -105,16 +105,16 @@ Net.methods({
 		return new Matrix({x:50, y:50});
 	},
 	aggregate : function(value, bias, inputs){
+		if(inputs.length <= 0)
+			return;
 		// aggregate inputs
 		value.clear(bias);
 		for(var i = 0; i < inputs.length; i += 1){
-			var inp = inputs[i];
-			value.add(inp.data, inp.modifier);
+			var input = inputs[i];
+			value.add(input.data, input.weight);
 		}
 
-		value.applyFunc(function(x){
-			return x > 0.0 ? 1.0 : x < 0.0 ? -1.0 : 0.0;
-		});
+		value.applyFunc(Math.sigmoid);
 	}
 });
 
@@ -203,7 +203,7 @@ Port.methods({
 function Wire(from, to){
 	this.from = from;
 	this.to = to;
-	this.modifier = 1.0;
+	this.weight = 1.0;
 	this.view = null;
 
 	this.from.wires.push(this);
@@ -218,10 +218,10 @@ Wire.methods({
 	// get the value from source port
 	get: function(){
 		var data = this.from.get();
-		return {data: data, modifier: this.modifier};
+		return {data: data, weight: this.weight};
 	},
-	setModifier: function(value){
-		this.modifier = value;
+	setWeight: function(value){
+		this.weight = value;
 		this.signal(this);
 	}
 });

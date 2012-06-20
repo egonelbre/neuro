@@ -1,7 +1,8 @@
 var loadWires = function(state, net, def){
-	for(var k = 0; k < def.input.length; k += 1){
-		var nodeDef = def.input[k],
+	for(var k = 0; k < def.output.length; k += 1){
+		var nodeDef = def.output[k],
 			node = net.Node(nodeDef.name);
+		console.log(node.name, ":", def.offset);
 		node.bias = def.offset;
 	}
 
@@ -13,7 +14,7 @@ var loadWires = function(state, net, def){
 				to = net.Node(toDef.name);
 
 			var wire = net.Wire(from, to);
-			wire.modifier = fromDef.multiplier / toDef.multiplier;
+			wire.setWeight(fromDef.multiplier / toDef.multiplier);
 		}
 	}
 }
@@ -30,6 +31,32 @@ var loadLayouts = function(state, net, def){
 	state.layer += 1;
 }
 
+var doAssignments = function(state, net, def){
+	if(def.property == "value"){
+		for(var i = 0; i < def.nodes.length; i += 1){
+			var node = net.Node(def.nodes[i].name),
+				val = node.value;
+			if(def.value == "vert"){
+				var i = 0;
+				for(var y = 0; y < val.size.y; y += 1)
+					for(var x = 0; x < val.size.x; x += 1){
+						val.value[i] = y*2 / val.size.y - 1.0;
+						i += 1;
+					}
+			}
+			if(def.value == "horz"){
+				var i = 0;
+				for(var y = 0; y < val.size.y; y += 1)
+					for(var x = 0; x < val.size.x; x += 1){
+						val.value[i] = x*2 / val.size.x - 1.0;
+						i += 1;
+					}
+			}
+			node.update();
+		}
+	}
+}
+
 var loadFromDefiniton = function(def){
 	var net = new Net(),
 	    state = {layer : 0};
@@ -37,9 +64,11 @@ var loadFromDefiniton = function(def){
 		var row = def[i];
 
 		if(row.typ == "wire")
-			loadWires(state, net, row.def)
+			loadWires(state, net, row.def);
 		else if(row.typ == "layout")
 			loadLayouts(state, net, row.def);
+		else if(row.typ == "assign")
+			doAssignments(state, net, row.def);
 	}
 	return net;
 };
@@ -62,9 +91,9 @@ step.onclick = function(){
 };
 
 run.onclick = function(){
-	console.log();
+	main.net.cpu.paused = false;
 };
 
 stop.onclick = function(){
-	console.log();
+	main.net.cpu.paused = true;
 };

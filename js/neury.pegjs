@@ -11,22 +11,27 @@ start
 }
 
 line
-  = assign:assignment comment? {return {typ:"wire", "def":assign};}
-  / layout:layouting comment? {return {typ:"layout", "def":layout};}
+  = wires:wires comment? {return {typ:"wire", "def":wires};}
+  / layout:layout comment? {return {typ:"layout", "def":layout};}
+  / assign:assign comment? {return {typ:"assign", "def":assign};}
   / comment? {return 0;}
 
 comment
   = space "#" [^\n]*
 
-assignment
+wires
   = output:nodes space "~" space input:nodes off:(space "+"? space float)?
 {
    var off = off ? off[3] : 0.0;
    return {output: output, input: input, offset:off};
 }
 
-layouting
+layout
   = space "=" space nodes:nodes { return {nodes:nodes}; }
+
+assign
+  = space nodes:nodes space ":" space property:identifier space "=" space value:identifier
+{ return { nodes: nodes, property : property, value : value }; }
 
 nodes
   = first:node rest:( space "+"? space node )*

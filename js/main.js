@@ -43,6 +43,10 @@ main = {
 net = new Net();
 main.net = net;
 
+setInterval(function(){
+	main.net.cpu.process();
+}, 50);
+
 main.huds.add(new NetUI());
 main.huds.add(new NetMover());
 main.huds.add(new WireAdjuster());

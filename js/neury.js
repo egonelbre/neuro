@@ -40,8 +40,9 @@ neury = (function(){
         "start": parse_start,
         "line": parse_line,
         "comment": parse_comment,
-        "assignment": parse_assignment,
-        "layouting": parse_layouting,
+        "wires": parse_wires,
+        "layout": parse_layout,
+        "assign": parse_assign,
         "nodes": parse_nodes,
         "node": parse_node,
         "range_node": parse_range_node,
@@ -261,7 +262,7 @@ neury = (function(){
         
         pos0 = clone(pos);
         pos1 = clone(pos);
-        result0 = parse_assignment();
+        result0 = parse_wires();
         if (result0 !== null) {
           result1 = parse_comment();
           result1 = result1 !== null ? result1 : "";
@@ -276,7 +277,7 @@ neury = (function(){
           pos = clone(pos1);
         }
         if (result0 !== null) {
-          result0 = (function(offset, line, column, assign) {return {typ:"wire", "def":assign};})(pos0.offset, pos0.line, pos0.column, result0[0]);
+          result0 = (function(offset, line, column, wires) {return {typ:"wire", "def":wires};})(pos0.offset, pos0.line, pos0.column, result0[0]);
         }
         if (result0 === null) {
           pos = clone(pos0);
@@ -284,7 +285,7 @@ neury = (function(){
         if (result0 === null) {
           pos0 = clone(pos);
           pos1 = clone(pos);
-          result0 = parse_layouting();
+          result0 = parse_layout();
           if (result0 !== null) {
             result1 = parse_comment();
             result1 = result1 !== null ? result1 : "";
@@ -306,13 +307,37 @@ neury = (function(){
           }
           if (result0 === null) {
             pos0 = clone(pos);
-            result0 = parse_comment();
-            result0 = result0 !== null ? result0 : "";
+            pos1 = clone(pos);
+            result0 = parse_assign();
             if (result0 !== null) {
-              result0 = (function(offset, line, column) {return 0;})(pos0.offset, pos0.line, pos0.column);
+              result1 = parse_comment();
+              result1 = result1 !== null ? result1 : "";
+              if (result1 !== null) {
+                result0 = [result0, result1];
+              } else {
+                result0 = null;
+                pos = clone(pos1);
+              }
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+            if (result0 !== null) {
+              result0 = (function(offset, line, column, assign) {return {typ:"assign", "def":assign};})(pos0.offset, pos0.line, pos0.column, result0[0]);
             }
             if (result0 === null) {
               pos = clone(pos0);
+            }
+            if (result0 === null) {
+              pos0 = clone(pos);
+              result0 = parse_comment();
+              result0 = result0 !== null ? result0 : "";
+              if (result0 !== null) {
+                result0 = (function(offset, line, column) {return 0;})(pos0.offset, pos0.line, pos0.column);
+              }
+              if (result0 === null) {
+                pos = clone(pos0);
+              }
             }
           }
         }
@@ -392,8 +417,8 @@ neury = (function(){
         return result0;
       }
       
-      function parse_assignment() {
-        var cacheKey = "assignment@" + pos.offset;
+      function parse_wires() {
+        var cacheKey = "wires@" + pos.offset;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = clone(cachedResult.nextPos);
@@ -502,8 +527,8 @@ neury = (function(){
         return result0;
       }
       
-      function parse_layouting() {
-        var cacheKey = "layouting@" + pos.offset;
+      function parse_layout() {
+        var cacheKey = "layout@" + pos.offset;
         var cachedResult = cache[cacheKey];
         if (cachedResult) {
           pos = clone(cachedResult.nextPos);
@@ -550,6 +575,110 @@ neury = (function(){
         }
         if (result0 !== null) {
           result0 = (function(offset, line, column, nodes) { return {nodes:nodes}; })(pos0.offset, pos0.line, pos0.column, result0[3]);
+        }
+        if (result0 === null) {
+          pos = clone(pos0);
+        }
+        
+        cache[cacheKey] = {
+          nextPos: clone(pos),
+          result:  result0
+        };
+        return result0;
+      }
+      
+      function parse_assign() {
+        var cacheKey = "assign@" + pos.offset;
+        var cachedResult = cache[cacheKey];
+        if (cachedResult) {
+          pos = clone(cachedResult.nextPos);
+          return cachedResult.result;
+        }
+        
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9;
+        var pos0, pos1;
+        
+        pos0 = clone(pos);
+        pos1 = clone(pos);
+        result0 = parse_space();
+        if (result0 !== null) {
+          result1 = parse_nodes();
+          if (result1 !== null) {
+            result2 = parse_space();
+            if (result2 !== null) {
+              if (input.charCodeAt(pos.offset) === 58) {
+                result3 = ":";
+                advance(pos, 1);
+              } else {
+                result3 = null;
+                if (reportFailures === 0) {
+                  matchFailed("\":\"");
+                }
+              }
+              if (result3 !== null) {
+                result4 = parse_space();
+                if (result4 !== null) {
+                  result5 = parse_identifier();
+                  if (result5 !== null) {
+                    result6 = parse_space();
+                    if (result6 !== null) {
+                      if (input.charCodeAt(pos.offset) === 61) {
+                        result7 = "=";
+                        advance(pos, 1);
+                      } else {
+                        result7 = null;
+                        if (reportFailures === 0) {
+                          matchFailed("\"=\"");
+                        }
+                      }
+                      if (result7 !== null) {
+                        result8 = parse_space();
+                        if (result8 !== null) {
+                          result9 = parse_identifier();
+                          if (result9 !== null) {
+                            result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8, result9];
+                          } else {
+                            result0 = null;
+                            pos = clone(pos1);
+                          }
+                        } else {
+                          result0 = null;
+                          pos = clone(pos1);
+                        }
+                      } else {
+                        result0 = null;
+                        pos = clone(pos1);
+                      }
+                    } else {
+                      result0 = null;
+                      pos = clone(pos1);
+                    }
+                  } else {
+                    result0 = null;
+                    pos = clone(pos1);
+                  }
+                } else {
+                  result0 = null;
+                  pos = clone(pos1);
+                }
+              } else {
+                result0 = null;
+                pos = clone(pos1);
+              }
+            } else {
+              result0 = null;
+              pos = clone(pos1);
+            }
+          } else {
+            result0 = null;
+            pos = clone(pos1);
+          }
+        } else {
+          result0 = null;
+          pos = clone(pos1);
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, line, column, nodes, property, value) { return { nodes: nodes, property : property, value : value }; })(pos0.offset, pos0.line, pos0.column, result0[1], result0[5], result0[9]);
         }
         if (result0 === null) {
           pos = clone(pos0);

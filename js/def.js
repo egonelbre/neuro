@@ -90,7 +90,7 @@ Function.methods({
         var other = this.apply( that, arguments );
         return ( typeof other === 'object' && other ) || that;
     },
-    inherits : function( Parent ){
+    inherit : function( Parent ){
         this.prototype = new Parent();
         return this;
     },

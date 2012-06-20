@@ -62,8 +62,8 @@ NetUI.methods({
 
         ctx.fillStyle = "#000";
 
-        var text = wire.modifier >= 1000 ? 
-        	wire.modifier.toFixed(0): wire.modifier.toFixed(1);
+        var text = wire.weight >= 1000 ? 
+        	wire.weight.toFixed(0): wire.weight.toFixed(1);
 
         ctx.fillTextC(text, view.center.x, view.center.y);
 	},
@@ -118,7 +118,7 @@ NetAdjuster.methods({
 	findItem : function(e){
 		return null;
 	},
-	adjustItem : function(e){
+	adjustItem : function(item, e){
 	},
 	touch : function(action, e){
 		if(!this.adjusting && (action != "start"))
@@ -126,12 +126,12 @@ NetAdjuster.methods({
 		if(e.button != 0) return;
 
 		if(action == "start")
-			this.selection = this.findItem(e);
+			this.selection = this.findItem(action, e);
 
 		if(this.selection == null)
 			return false;
 
-		this.adjustItem(this.selection, e);
+		this.adjustItem(action, e, this.selection);
         
 		if((action == "cancel") || (action == "end"))
 			this.selection = null;
@@ -141,44 +141,27 @@ NetAdjuster.methods({
 	}
 })
 
+
 function NetMover(){
-	//todo : inherit from NetAdjuster
-	this.moving = false;
-	this.selection = null;
+	NetAdjuster.call(this);
 	this.last = {x:0, y:0};
 }
-
+NetMover.inherit(NetAdjuster);
 NetMover.methods({
-	getNet : function(){
-		return main.net;
-	},
-	render : function(ctx){
-	},
-	touch : function(action, e){
-		if(!this.moving && (action != "start"))
-			return;
-		if(e.button != 0) return;
-
+	findItem : function(action, e){
 		var net = this.getNet(),
 			keys = Object.keys(net.nodes);
-
-		if(action == "start"){
-			for(var i = 0; i < keys.length; i += 1){
-				var node = net.nodes[keys[i]];
-				if (node.view == null)
-					continue;
-				
-				var distSq = V.distSq(node.view.pos, e.scroll);
-				if(distSq < node.view.radius * node.view.radius){
-					this.selection = node;
-					break;
-				}
-			}
+		for(var i = keys.length - 1; i >= 0; i -= 1){
+			var node = net.nodes[keys[i]];
+			if (node.view == null)
+				continue;
+			
+			var distSq = V.distSq(node.view.pos, e.scroll);
+			if(distSq < node.view.radius * node.view.radius)
+				return node;
 		}
-
-		if(this.selection == null)
-			return false;
-
+	},
+	adjustItem : function(action, e, item){
         if(action == "start")
             V.set(this.last, e.scroll);
 
@@ -186,64 +169,36 @@ NetMover.methods({
         this.selection.view.pos.y += e.scroll.y - this.last.y;
 
         V.set(this.last, e.scroll);
-
-		if((action == "cancel") || (action == "end"))
-			this.selection = null;
-		this.moving = this.selection != null;
-
-		return true;
 	}
 });
 
 function WireAdjuster(){
-	//todo : inherit from NetAdjuster
-	this.moving = false;
-	this.selection = null;
-	this.last = {x:0, y:0};
+	NetAdjuster.call(this);
+	this.last = {x:0,y:0};
 }
-
+WireAdjuster.inherit(NetAdjuster);
 WireAdjuster.methods({
-	getNet : function(){
-		return main.net;
-	},
-	render : function(ctx){
-	},
-	touch : function(action, e){
-		if(!this.moving && (action != "start"))
-			return;
-		if(e.button != 0) return;
-
+	findItem : function(action, e){
 		var net = this.getNet();
 
-		if(action == "start"){
-			for(var i = 0; i < net.wires.length; i += 1){
-				var wire = net.wires[i];
-				if (wire.view == null)
-					continue;
-				
-				var distSq = V.distSq(wire.view.center, e.scroll);
-				if(distSq < wire.view.radius * wire.view.radius){
-					this.selection = wire;
-					break;
-				}
-			}
+		for(var i = net.wires.length-1; i >= 0; i -= 1){
+			var wire = net.wires[i];
+			if (wire.view == null)
+				continue;
+			
+			var distSq = V.distSq(wire.view.center, e.scroll);
+			if(distSq < wire.view.radius * wire.view.radius)
+				return wire;
 		}
-
-		if(this.selection == null)
-			return false;
-
+	},
+	adjustItem : function(action, e, item){
         if(action == "start")
             V.set(this.last, e.pos);
         
-        var value = this.selection.modifier - (e.pos.y - this.last.y)/2;
-        this.selection.setModifier(value);
+        var value = this.selection.weight - (e.pos.y - this.last.y)/2;
+        this.selection.setWeight(value);
 
         V.set(this.last, e.pos);
-
-		if((action == "cancel") || (action == "end"))
-			this.selection = null;
-		this.moving = this.selection != null;
-
-		return true;
 	}
 });
+
