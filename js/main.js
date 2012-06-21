@@ -44,7 +44,7 @@ net = new Net();
 main.net = net;
 
 setInterval(function(){
-	main.net.cpu.process();
+	main.net.cpu.update();
 }, 40);
 
 main.huds.add(new NetUI());
@@ -52,7 +52,7 @@ main.huds.add(new NetMover());
 main.huds.add(new WireAdjuster());
 main.huds.add(new BiasAdjuster());
 
-setTimeout(function(){load.onclick();}, 1000);
+setTimeout(function(){load.click();}, 1000);
 
 canvas.width = main.size.x;
 canvas.height = main.size.y;

@@ -72,7 +72,7 @@ var loadFromDefiniton = function(def){
 	return net;
 };
 
-load.onclick = function(){
+load.addEventListener("click", function(){
 	log.innerHTML = "processing...";
 	var text = input.value;
 	try {
@@ -83,16 +83,18 @@ load.onclick = function(){
 	} catch (err){
 		log.innerHTML = err;
 	}
-};
+});
 
-step.onclick = function(){
+step.addEventListener("click", function(){
 	main.net.cpu.process();
-};
+});
 
-run.onclick = function(){
+run.addEventListener("click", function(){
 	main.net.cpu.paused = false;
-};
+});
 
-stop.onclick = function(){
+var btnStop = document.get
+
+document.getElementById("stop").addEventListener("click", function(){
 	main.net.cpu.paused = true;
-};
+});

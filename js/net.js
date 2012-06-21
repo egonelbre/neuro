@@ -13,10 +13,12 @@ CPU.methods({
 	toggle : function(){
 		this.paused = !this.paused;
 	},
-	process : function(){		
+	update : function(){
 		if(this.paused)
 			return;
-		
+		this.process();
+	},
+	process : function(){
 		this.time += 1;
 		var cur = this.next,
 			keys = Object.keys(cur);
