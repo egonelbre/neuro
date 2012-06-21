@@ -18,6 +18,7 @@ line
 
 comment
   = space "#" [^\n]*
+  / space
 
 wires
   = output:nodes space "~" space input:nodes off:(space "+"? space float)?

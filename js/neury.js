@@ -409,6 +409,9 @@ neury = (function(){
           result0 = null;
           pos = clone(pos0);
         }
+        if (result0 === null) {
+          result0 = parse_space();
+        }
         
         cache[cacheKey] = {
           nextPos: clone(pos),
