@@ -14,7 +14,6 @@ NetUI.methods({
 		return main.net;
 	},
 	renderNode : function(ctx, net, node){
-		this.positionNode(net, node);
 		var view = node.view,
 			height = view.image + view.header + view.param;
 		
@@ -84,14 +83,21 @@ NetUI.methods({
 		}
 	},
 	renderWire : function(ctx, net, wire){
-		this.positionWire(net, wire);
 		var view = wire.view;
+
+		var from_port = this.getNodePortOut(wire.from.owner.view, 0),
+			to_port = this.getNodePortIn(wire.to.owner.view, 0);
+
+		from_port.x += 3;
+		to_port.x -= 3;
+
+		V.avg(from_port, to_port, view.center);
 
         // draw line
         //ctx.fillStyle = "#ddd";
         ctx.fillStyle = timeToColor(net, wire.time);
         ctx.strokeStyle = "#444";
-        ctx.arrow([view.from, view.to], 3, 0.3, 5);
+        ctx.arrow([from_port, to_port], 3, 0.3, 5);
 
         // draw text
         ctx.font = view.fontSize + "px Georgia, sans-serif";
@@ -123,25 +129,8 @@ NetUI.methods({
 		keys.map(function(name){ g.renderNode(ctx, net, net.nodes[name]);});
 		net.wires.map(function(wire){ g.renderWire(ctx, net, wire); });
 	},
-	touch : function(action, e){},
-	positionNode : function(net, node){
-		var net = this.net;
-	},
-	positionWire : function(net, wire){
-		var net = this.net;
+	touch : function(action, e){
 
-		if(wire.view == null){
-
-		}
-		var view = wire.view;
-		
-		V.set(view.from, wire.from.owner.view.pos);
-		view.from.x += wire.from.owner.view.radius;
-
-		V.set(view.to, wire.to.owner.view.pos);
-		view.to.x -= wire.to.owner.view.radius;
-
-		V.avg(view.from, view.to, view.center);
 	}
 });
 
@@ -198,8 +187,8 @@ NetMover.methods({
 			if (node.view == null)
 				continue;
 			
-			var distSq = V.distSq(node.view.pos, e.scroll);
-			if(distSq < node.view.radius * node.view.radius)
+			var inside = V.pointInsideRect(e.scroll, node.view.pos, {x:node.view.width, y:node.view.header});
+			if(inside)
 				return node;
 		}
 	},
@@ -218,6 +207,7 @@ function WireAdjuster(){
 	NetAdjuster.call(this);
 	this.last = {x:0,y:0};
 }
+
 WireAdjuster.inherit(NetAdjuster);
 WireAdjuster.methods({
 	findItem : function(action, e){
@@ -228,7 +218,7 @@ WireAdjuster.methods({
 			if (wire.view == null)
 				continue;
 			
-			if(V.pointInsideRect(e.scroll, wire.view.center, wire.view.size))
+			if(V.pointInsideCRect(e.scroll, wire.view.center, wire.view.size))
 				return wire;
 		}
 	},
@@ -236,10 +226,48 @@ WireAdjuster.methods({
         if(action == "start")
             V.set(this.last, e.pos);
         
-        var value = this.selection.weight - (e.pos.y - this.last.y)/2;
-        this.selection.setWeight(value);
+        var weight = this.selection.weight,
+        	dy = e.pos.y - this.last.y,
+        	dx = e.pos.x - this.last.x;
+      	weight += dy / 4;
+        weight += dx / 10;
+        
+        this.selection.setWeight(weight);
 
         V.set(this.last, e.pos);
 	}
 });
 
+function BiasAdjuster(){
+	NetAdjuster.call(this);
+	this.last = {x:0, y:0};
+}
+
+BiasAdjuster.inherit(NetAdjuster);
+BiasAdjuster.methods({
+	findItem : function(action, e){
+		var net = this.getNet(),
+			keys = Object.keys(net.nodes);
+		for(var i = keys.length - 1; i >= 0; i -= 1){
+			var node = net.nodes[keys[i]];
+			if (node.view == null)
+				continue;
+			var p = { x : node.view.pos.x, y : node.view.pos.y + node.view.header };
+			var inside = V.pointInsideRect(e.scroll, p, {x:node.view.width, y:node.view.param});
+			if(inside)
+				return node;
+		}
+	},
+	adjustItem : function(action, e, item){
+        if(action == "start")
+            V.set(this.last, e.scroll);
+
+        var bias = this.selection.bias,
+        	dy = e.scroll.y - this.last.y,
+        	dx = e.scroll.x - this.last.x;
+      	bias += dy / 4;
+        bias += dx / 10;
+        this.selection.setBias(bias);
+        V.set(this.last, e.scroll);
+	}
+});

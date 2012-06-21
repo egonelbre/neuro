@@ -91,8 +91,12 @@ V.inverseTransform = function(p, offset, zoom, r){
     return r;
 };
 
-
 V.pointInsideRect = function(p, r, size){
+    return (p.x >= r.x) && (p.y > r.y) &&
+           (p.x < r.x + size.x) && (p.y < r.y + size.y);
+};
+
+V.pointInsideCRect = function(p, r, size){
     var dx = Math.abs(p.x - r.x),
         dy = Math.abs(p.y - r.y);
     return (dx < size.x / 2) && (dy < size.y / 2)

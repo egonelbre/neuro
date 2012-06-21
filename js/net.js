@@ -141,6 +141,10 @@ Node.methods({
 		this.value = value;
 		this.output.set(this.value);
 	},
+	setBias : function(value){
+		this.bias = value;
+		this.signal(this);
+	},
 	// schedule an update for this node
 	signal : function(sender){
 		this.net.cpu.schedule(this);
@@ -201,19 +205,16 @@ Port.methods({
 
 // Wire is basically a signal transimtter
 function Wire(from, to){
-	this.from = from;
-	this.to = to;
 	this.weight = 1.0;
 	this.time = 0;
 
+	this.from = from;
+	this.to = to;
 	this.from.wires.push(this);
 	this.to.wires.push(this);
 
 	this.view = {
-		from : {x : 0, y : 0},
-		to : {x : 0, y : 0},
 		center : { x : 0, y : 0 },
-		
 		size : { x : 45, y : 16},
 		fontSize : 10
 	};	
