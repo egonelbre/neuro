@@ -52,10 +52,7 @@ main.huds.add(new NetMover());
 main.huds.add(new WireAdjuster());
 main.huds.add(new BiasAdjuster());
 
-var X = net.Node("X.3"); 
-var Y = net.Node("Y.5"); 
-var Z = net.Node("Z.6"); 
-net.Wire(X, Y);
+setTimeout(function(){load.onclick();}, 1000);
 
 canvas.width = main.size.x;
 canvas.height = main.size.y;
