@@ -71,8 +71,8 @@ Matrix.methods({
 		        data[i+2] = 255 + v - err;
 	        } else {
 	        	data[i]   = 255 - v - err;
-		        data[i+1] = 255     - err;
-		        data[i+2] = 255 - v - err;
+		        data[i+1] = 255 - v/10 - err;
+		        data[i+2] = 255     - err;
 	        }
 	        data[i+3] = 255;
 	        
@@ -83,12 +83,6 @@ Matrix.methods({
 	render : function(ctx, x, y, w, h){
 		if(this.changed)
 			this.invalidate(ctx);
-
-		ctx.beginPath();
-		ctx.rect(x-1, y-1, this.size.x+2, this.size.y+2);
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.drawImageData(this.imageData, x, y);
+		ctx.drawImageData(this.imageData, x, y, w, h);
 	}
 });

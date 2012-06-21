@@ -15,38 +15,73 @@ NetUI.methods({
 	},
 	renderNode : function(ctx, net, node){
 		this.positionNode(net, node);
-		var view = node.view;
-
-		ctx.strokeStyle = "#111";
-		ctx.lineWidth = 1;
+		var view = node.view,
+			height = view.image + view.header + view.param;
 		
+		ctx.strokeStyle = "#111";
+		ctx.lineWidth = 0.3;
+
+		// ports
+		ctx.fillStyle = "#ddd";
+		var ports = [this.getNodePortIn(view, 0), this.getNodePortOut(view, 0)];
+		for(var i = 0; i < ports.length; i += 1){
+			var port = ports[i];
+			ctx.beginPath();
+			ctx.arc(port.x, port.y, port.radius, 0, Math.PI*2, 0);
+			ctx.fill();
+			ctx.stroke();
+		}
+		// background
+		
+		ctx.lineWidth = 0.5;
 		ctx.fillStyle = timeToColor(net, node.time);
 		ctx.beginPath();
-		ctx.arc(view.pos.x, view.pos.y, view.radius, 0, tau, 0);
+		ctx.roundRect(view.pos.x, view.pos.y, view.width, height, 3);
 		ctx.fill();
 		ctx.stroke();
 
-		ctx.fillStyle = "#eee";
-		ctx.beginPath();
-		ctx.arc(view.pos.x - view.radius, 
-			    view.pos.y, view.radius/3, 0, tau, 0);
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.beginPath();
-		ctx.arc(view.pos.x + view.radius, 
-			    view.pos.y, view.radius/3, 0, tau, 0);
-		ctx.fill();
-		ctx.stroke();
-
+		// header
 		ctx.fillStyle = "#000";
-		ctx.font = "11px Georgia, sans-serif";
+		ctx.font = (view.header - 2) + "px Georgia, sans-serif";
+	    ctx.fillText(node.name,
+	        view.pos.x + 5, 
+	        view.pos.y + view.header - 2);
 
-	    ctx.fillTextC(node.name,
-	        view.pos.x, 
-	        view.pos.y);
+	    // header underline
+	    ctx.lineWidth = 0.1;
+	    ctx.beginPath();
+	    ctx.moveTo(view.pos.x + 1, view.pos.y + view.header);
+	    ctx.lineTo(view.pos.x - 1 + view.width, view.pos.y + view.header);
+	    ctx.stroke();
 
-	   	node.value.render(ctx, view.pos.x, view.pos.y + view.radius);
+	    // bias parameter
+	    ctx.font = (view.param - 2) + "px Georgia, sans-serif";
+	    ctx.fillText(node.bias.toFixed(1),
+	    	view.pos.x + 3,
+	    	view.pos.y + view.header + view.param - 2);
+
+	    // current value
+	   	node.value.render(ctx, view.pos.x + 1, view.pos.y + view.header + view.param + 1, view.width - 2, view.image - 2);
+	},
+	getNodePortIn : function(view, idx){
+		var radius = 6,
+			pad = 2;
+
+		return {
+			x : view.pos.x,
+			y : view.pos.y + view.header + (radius + pad)*idx + 2,
+			radius : radius
+		}
+	},
+	getNodePortOut : function(view, idx){
+		var radius = 6,
+			pad = 2;
+
+		return {
+			x : view.pos.x + view.width,
+			y : view.pos.y + view.header + (radius + pad)*idx + 2,
+			radius : radius
+		}
 	},
 	renderWire : function(ctx, net, wire){
 		this.positionWire(net, wire);
@@ -59,13 +94,17 @@ NetUI.methods({
         ctx.arrow([view.from, view.to], 3, 0.3, 5);
 
         // draw text
-        ctx.font = "11px Georgia, sans-serif";
+        ctx.font = view.fontSize + "px Georgia, sans-serif";
         
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.3;
         ctx.beginPath();
         ctx.fillStyle = "#eee";
         ctx.strokeStyle = "#111";
-        ctx.arc(view.center.x, view.center.y, view.radius, 0, tau, 0);
+
+        ctx.roundRect(view.center.x - view.size.x/2,
+        		 view.center.y - view.size.y/2,
+        		 view.size.x, view.size.y, 3);
+
         ctx.fill();
         ctx.stroke();
 
@@ -92,13 +131,7 @@ NetUI.methods({
 		var net = this.net;
 
 		if(wire.view == null){
-			wire.view = {
-				from : {x : 0, y : 0},
-				to : {x : 0, y : 0},
-				center : { x : 0, y : 0 },
-				hover : false,
-				radius : 20
-			};
+
 		}
 		var view = wire.view;
 		
@@ -195,8 +228,7 @@ WireAdjuster.methods({
 			if (wire.view == null)
 				continue;
 			
-			var distSq = V.distSq(wire.view.center, e.scroll);
-			if(distSq < wire.view.radius * wire.view.radius)
+			if(V.pointInsideRect(e.scroll, wire.view.center, wire.view.size))
 				return wire;
 		}
 	},

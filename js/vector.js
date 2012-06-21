@@ -90,3 +90,10 @@ V.inverseTransform = function(p, offset, zoom, r){
     r.y = p.y / zoom - offset.y;
     return r;
 };
+
+
+V.pointInsideRect = function(p, r, size){
+    var dx = Math.abs(p.x - r.x),
+        dy = Math.abs(p.y - r.y);
+    return (dx < size.x / 2) && (dy < size.y / 2)
+};

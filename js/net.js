@@ -126,7 +126,11 @@ function Node(name){
 	this.view = {
 		pos : { x : Math.random()*500, 
 		        y : Math.random()*500 },
-		radius : 20
+		radius : 30,
+		width : 42,
+		header : 13,
+		param : 11,
+		image : 42
 	};
 	this.time = 0;
 }
@@ -200,11 +204,19 @@ function Wire(from, to){
 	this.from = from;
 	this.to = to;
 	this.weight = 1.0;
-	this.view = null;
 	this.time = 0;
 
 	this.from.wires.push(this);
 	this.to.wires.push(this);
+
+	this.view = {
+		from : {x : 0, y : 0},
+		to : {x : 0, y : 0},
+		center : { x : 0, y : 0 },
+		
+		size : { x : 45, y : 16},
+		fontSize : 10
+	};	
 }
 
 Wire.methods({
