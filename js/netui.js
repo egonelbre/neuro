@@ -304,8 +304,11 @@ WireDrawer.methods({
 		}
 	},
 	adjustItem : function(action, e, item){
-        if(action == "start")
-            V.set(this.from, e.scroll);
+        if(action == "start"){
+        	V.set(this.from, e.scroll);
+        	V.set(this.to, e.scroll);
+        }
+        
        	if(action == "move")
        		V.set(this.to, e.scroll)
 

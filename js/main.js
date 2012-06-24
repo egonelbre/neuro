@@ -1,11 +1,19 @@
-var tau = Math.PI * 2;
-
 var body = document.body,
 	canvas = document.getElementById("view"),
 	ctx = canvas.getContext("2d");
 
 document.body.clientWidth;
 
+// MAKE MULTIPLE OBJECTS
+
+var make = function(clzs){
+	var objs = [];
+	for(var i = 0; i < clzs.length; i += 1)
+		objs.push(new clzs[i]());
+	return objs;
+}
+
+// MAIN CONTROLLER
 main = {
 	controls : {
 		control : false,
@@ -13,7 +21,15 @@ main = {
 		alt : false
 	},
 	size : { x: 800, y: 480	},
-	huds : new HUDStack(),
+	huds : new HUDStack(
+		make([	Grid,
+				HUDStackScroll,
+			    NetUI, 
+		  		NetMover, 
+		  		WireAdjuster,
+		  		BiasAdjuster,
+		  		WireDrawer])
+	),
 	key : function(action, e){
 		requestRender();
 	},
@@ -37,26 +53,19 @@ main = {
 		this.size.y = size.y;
 	},
 
-	net : null
+	net : new Net()
 };
 
-net = new Net();
-main.net = net;
+// SETUP AUTO UPDATE
 
 setInterval(function(){
 	main.net.cpu.update();
 }, 40);
 
-main.huds.add(new NetUI());
-main.huds.add(new NetMover());
-main.huds.add(new WireAdjuster());
-main.huds.add(new BiasAdjuster());
-main.huds.add(new WireDrawer());
-
-setTimeout(function(){load.click();}, 1000);
-
 canvas.width = main.size.x;
 canvas.height = main.size.y;
+
+// SETUP RENDERING
 
 function render(){ 
 	main.update();
@@ -75,3 +84,36 @@ function requestRender(){
 
 setInterval(requestRender, 33);
 requestRender();
+
+// ADD BUTTON ACTIONS
+
+var $on = function(id, action, func){
+	var item = document.getElementById(id);
+	item.addEventListener(action, func);
+};
+
+$on("load", "click", function(){
+	log.innerHTML = "processing...";
+	var text = input.value;
+	try {
+		var net = loader.createFromText(text);
+		main.net = net;
+		log.innerHTML = "";
+	} catch (err){
+		log.innerHTML = err;
+	}
+});
+
+$on("step", "click", function(){
+	main.net.cpu.process();
+});
+
+$on("run", "click", function(){
+	main.net.cpu.paused = false;
+});
+
+$on("stop", "click", function(){
+	main.net.cpu.paused = true;
+});
+
+load.click();

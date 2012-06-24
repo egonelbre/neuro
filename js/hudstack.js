@@ -1,4 +1,4 @@
-function HUDStack(){
+function HUDStack(huds){
     this.name = "";
     this.owner = null;
     this.touches = {};
@@ -6,9 +6,7 @@ function HUDStack(){
     this.offset = {x:50, y:200};
     this.zoom = 1.0;
     this.size = {x:0,y:0};
-
-    this.add(new Grid());
-    this.add(new HUDStackScroll());
+    this.add(huds);
 }
 
 HUDStack.methods({
@@ -59,6 +57,11 @@ HUDStack.methods({
             delete this.touches[e.identifier];
     },
     add : function(hud){
+        if(hud instanceof Array){
+            for(var i = 0; i < hud.length; i += 1)
+                this.add(hud[i]);
+            return;
+        }
         hud.owner = this;
         this.huds.push(hud);
     }

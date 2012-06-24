@@ -33,7 +33,6 @@ document.onkeydown=keyBinding("down");
 document.onkeypress=keyBinding("press");
 document.onkeyup=keyBinding("up");
 
-
 var touchBinding = function(action){
     return function(e){
         e.preventDefault();
