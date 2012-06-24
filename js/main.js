@@ -120,7 +120,7 @@ $on("load", "click", function(){
 		main.net = net;
 		log.innerHTML = "";
 	} catch (err){
-		log.innerHTML = err;
+		log.innerHTML = err + " (line: " + err.line + ")";
 	}
 });
 
@@ -146,7 +146,7 @@ $on("select-example", "change", function(){
 			code = ex.code;
 		}
 	}
-	document.getElementById("input").innerHTML = code;
+	document.getElementById("input").value = code;
 });
 
 // load the current net
