@@ -51,6 +51,7 @@ main.huds.add(new NetUI());
 main.huds.add(new NetMover());
 main.huds.add(new WireAdjuster());
 main.huds.add(new BiasAdjuster());
+main.huds.add(new WireDrawer());
 
 setTimeout(function(){load.click();}, 1000);
 

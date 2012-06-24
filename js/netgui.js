@@ -271,3 +271,54 @@ BiasAdjuster.methods({
         V.set(this.last, e.scroll);
 	}
 });
+
+function WireDrawer(){
+	NetAdjuster.call(this);
+	this.from = {x:0, y:0};
+	this.to = {x:0, y:0};
+}
+
+WireDrawer.inherit(NetAdjuster);
+WireDrawer.methods({
+	render : function(ctx){
+		if(!this.adjusting)
+			return;
+		ctx.lineWidth = 5;
+		ctx.strokeStyle = "#d44";
+		ctx.beginPath();
+		ctx.moveTo(this.from.x, this.from.y);
+		ctx.lineTo(this.to.x, this.to.y);
+		ctx.stroke();
+	},
+	findItem : function(action, e){
+		var net = this.getNet(),
+			keys = Object.keys(net.nodes);
+		for(var i = keys.length - 1; i >= 0; i -= 1){
+			var node = net.nodes[keys[i]];
+			if (node.view == null)
+				continue;
+			var p = { x : node.view.pos.x, y : node.view.pos.y + node.view.header + node.view.param };
+			var inside = V.pointInsideRect(e.scroll, p, {x:node.view.width, y:node.view.param});
+			if(inside)
+				return node;
+		}
+	},
+	adjustItem : function(action, e, item){
+        if(action == "start")
+            V.set(this.from, e.scroll);
+       	if(action == "move")
+       		V.set(this.to, e.scroll)
+
+       	if(action == "end"){
+
+       	}
+       	/*
+        var bias = this.selection.bias,
+        	dy = e.scroll.y - this.last.y,
+        	dx = e.scroll.x - this.last.x;
+      	bias += dy / 4;
+        bias += dx / 10;
+        this.selection.setBias(bias);
+        V.set(this.last, e.scroll);*/
+	}
+});
