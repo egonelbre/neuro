@@ -21,6 +21,7 @@ out ~ -25c.1 - 10c.2 + 1
 = c[1..2]
 = out
 
+# define properties
 x : value = horz
 y : value = vert
 </textarea>
@@ -29,6 +30,7 @@ y : value = vert
 <button id="step">Step</button>
 <button id="run">Run</button>
 <button id="stop">Stop</button>
+<select id="select-example"></select>
 <br />
 
 <div id="log">
@@ -43,10 +45,52 @@ y : value = vert
 <script src="https://raw.github.com/egonelbre/neuro/master/js/hudstack.js"></script>
 
 <script src="https://raw.github.com/egonelbre/neuro/master/js/neury.js"></script>
+<script src="https://raw.github.com/egonelbre/neuro/master/js/loader.js"></script>
 
 <script src="https://raw.github.com/egonelbre/neuro/master/js/net.js"></script>
-<script src="https://raw.github.com/egonelbre/neuro/master/js/netgui.js"></script>
+<script src="https://raw.github.com/egonelbre/neuro/master/js/netui.js"></script>
 
 <script src="https://raw.github.com/egonelbre/neuro/master/js/main.js"></script>
 <script src="https://raw.github.com/egonelbre/neuro/master/js/bindings.js"></script>
-<script src="https://raw.github.com/egonelbre/neuro/master/js/buttons.js"></script>
+
+<div id="examples" style="visibility: hidden; display: none">
+<script type="neury" caption="empty"></script>
+<script type="neury" caption="circles">
+# output nodes ~ input nodes
+h.1 ~ 10x - 3
+h.2 ~ -10x - 3
+h.3 ~ 10y - 3
+h.4 ~ -10y - 3
+c.1 ~ -10h[1..4] + 10
+c.2 ~ 10h[1..4] - 20
+out ~ -25c.1 - 10c.2 + 1
+
+# define layers
+= x y
+= h[1..4]
+= c[1..2]
+= out
+
+# define properties
+x : value = horz
+y : value = vert
+</script>
+<script type="neury" caption="feedback">
+y ~ -2x
+z ~ -3.5y
+w ~ -25z
+y ~ -7.6w
+z ~ t
+u ~ x + t
+w ~ u
+
+# define layers
+= x t
+= u
+= z w
+= y
+
+x : value = horz
+t : value = vert
+</script>
+</div>
