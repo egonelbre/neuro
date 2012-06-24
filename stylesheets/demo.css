@@ -26,12 +26,21 @@ section {
 #input { 
     width: 500px; 
     height: 200px;
+    float: left;
 }
 
 #log {
   width: 800px;
 }
 
+#buttons {
+  float: left;
+}
+
 button {
   height: 40px;
+}
+
+.clear {
+  clear: both;
 }

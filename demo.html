@@ -26,13 +26,15 @@ x : value = horz
 y : value = vert
 </textarea>
 
-<button id="load">Load</button>
-<button id="step">Step</button>
-<button id="run">Run</button>
-<button id="stop">Stop</button>
-<select id="select-example"></select>
+<div id="buttons">
+	<button id="load">Load</button>
+	<button id="step">Step</button>
+	<button id="run">Run</button>
+	<button id="stop">Stop</button>
+	<select id="select-example"></select>
+</div>
+<div class="clear"></div>
 <br />
-
 <div id="log">
 </div>
 
@@ -55,7 +57,46 @@ y : value = vert
 
 <div id="examples" style="visibility: hidden; display: none">
 <script type="neury" caption="empty"></script>
-<script type="neury" caption="circles">
+<script type="neury" caption="simple">
+# simple example of net definition
+# to load this definition press "Load"
+
+# defining links is easy:
+# output nodes <-- input nodes
+
+x ~ horz + vert
+y + z ~ x
+out ~ y + z
+
+# since there is currently no layouting algorithm (other than random)
+# you must define the layout explicitly
+# layout line starts with '='
+# followed by nodes for that layer
+
+= horz vert
+= x
+= y z
+= out
+
+# to get some interesting values we must
+# define more interesting values to nodes
+# nodes : value = horz/vert
+horz : value = horz
+vert : value = vert
+</script>
+<script type="neury" caption="gui">
+# you can also interact with the net on the right
+
+# move the whole net with the middle mouse button
+# zoom in and out with the scroll wheel
+
+# try dragging nodes by their caption
+# try dragging on the weight on the wire
+# try dragging bias number on the node
+
+# the red color shows how the changes propagate
+# through the net
+
 # output nodes ~ input nodes
 h.1 ~ 10x - 3
 h.2 ~ -10x - 3
@@ -75,7 +116,31 @@ out ~ -25c.1 - 10c.2 + 1
 x : value = horz
 y : value = vert
 </script>
+<script type="neury" caption="nodes">
+# you can also define more complicated nets
+# with ranges
+# 5*x[1..3] is equivalent to 5*x.1 + 5*x.2 + 5*x.3
+
+# example
+x[1..3] ~ horz + vert
+
+# multiple can be on both sides
+# also you can add multiplier and offset
+z[1..5] ~ 2*x[1..3] + 3
+out ~ z[1..5]
+
+= horz vert
+= x[1..3]
+= z[1..5]
+= out
+
+horz : value = horz
+vert : value = vert
+
+</script>
 <script type="neury" caption="feedback">
+# you can also define a net with feedback links
+# here is an example that produces cyclic behaviour
 y ~ -2x
 z ~ -3.5y
 w ~ -25z
