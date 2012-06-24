@@ -7,7 +7,6 @@ var loader = {};
 					node = net.Node(nodeDef.name);
 				node.bias = def.offset;
 			}
-
 			for(var f = 0; f < def.input.length; f += 1){
 				var fromDef = def.input[f],
 					from = net.Node(fromDef.name);

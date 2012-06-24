@@ -53,7 +53,8 @@ main = {
 		this.size.y = size.y;
 	},
 
-	net : new Net()
+	net : new Net(),
+	examples : []
 };
 
 // SETUP AUTO UPDATE
@@ -85,7 +86,26 @@ function requestRender(){
 setInterval(requestRender, 33);
 requestRender();
 
-// ADD BUTTON ACTIONS
+// SETUP EXAMPLES
+
+setTimeout(function(){
+	var exs = document.getElementById("examples").children;
+	for(var i = 0; i < exs.length; i += 1){
+		var ex = exs[i];
+		main.examples.push({
+			caption : ex.getAttribute("caption"),
+			code : ex.innerHTML
+		});
+	}
+
+	var sel = document.getElementById("select-example");
+	for(var i = 0; i < main.examples.length; i += 1){
+		var ex = main.examples[i];
+		sel.innerHTML += '<option value="' + ex.caption + '">' + ex.caption + '</option>';
+	}
+}, 500);
+
+// ADD ACTIONS
 
 var $on = function(id, action, func){
 	var item = document.getElementById(id);
@@ -116,4 +136,18 @@ $on("stop", "click", function(){
 	main.net.cpu.paused = true;
 });
 
+$on("select-example", "change", function(){
+	var sel = document.getElementById("select-example"),
+		caption = sel.value,
+		code = "";
+	for(var i = 0; i < main.examples.length; i += 1){
+		var ex = main.examples[i];
+		if(ex.caption === caption){
+			code = ex.code;
+		}
+	}
+	document.getElementById("input").innerHTML = code;
+});
+
+// load the current net
 load.click();
