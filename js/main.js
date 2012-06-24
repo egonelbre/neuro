@@ -120,7 +120,7 @@ $on("load", "click", function(){
 		main.net = net;
 		log.innerHTML = "";
 	} catch (err){
-		log.innerHTML = err + " (line: " + err.line + ")";
+		log.innerHTML = "[" + err.line + "] " + err;
 	}
 });
 
