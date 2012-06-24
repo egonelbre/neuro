@@ -38,7 +38,7 @@ main = {
 		requestRender();
 	},
 	update : function(){
-
+		this.net.cpu.update();
 	},
 	render : function(ctx){
 		ctx.fillStyle = "#fff";
@@ -60,7 +60,7 @@ main = {
 // SETUP AUTO UPDATE
 
 setInterval(function(){
-	main.net.cpu.update();
+	main.update();
 }, 40);
 
 canvas.width = main.size.x;
@@ -69,7 +69,6 @@ canvas.height = main.size.y;
 // SETUP RENDERING
 
 function render(){ 
-	main.update();
 	main.render(ctx);
 	last = 0;
 }
